@@ -1,0 +1,442 @@
+
+/* Category Edit Icon Button */
+.icon-button.edit-button {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #FFFFFF;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.icon-button.edit-button:hover {
+    background: #F3E8FF;
+    border-color: #C084FC;
+    transform: translateY(-1px);
+}
+/* ========================================
+   CATEGORIES PAGE - CATEGORY CARDS
+======================================== */
+
+.categories-content {
+    min-width: 0;
+}
+
+.categories-content .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.categories-content .page-header h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 750;
+}
+
+.categories-content .page-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.categories-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.categories-list > h2 {
+    grid-column: 1 / -1;
+    margin: 10px 0 -10px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.categories-list > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: 0.2s ease;
+}
+
+.categories-list > div:hover {
+    border-color: #c4b5fd;
+    transform: translateY(-2px);
+}
+
+.categories-list > div > span:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.categories-list .icon-button {
+    flex-shrink: 0;
+}
+/* ========================================
+   CATEGORY CARDS
+======================================== */
+
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.categories-count {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.category-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.category-section h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.category-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+}
+
+.category-card:hover {
+    border-color: #c4b5fd;
+    transform: translateY(-2px);
+}
+
+.category-card-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    background: #f5f3ff;
+    border-radius: 12px;
+    font-size: 21px;
+}
+
+.category-details {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.category-name {
+    font-size: 13px;
+    font-weight: 650;
+    overflow-wrap: break-word;
+    word-break: normal;
+    min-width: 0;
+}
+
+.category-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.category-color {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.category-status {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.category-status.active {
+    color: #16a34a;
+}
+
+.category-status.inactive {
+    color: #9ca3af;
+}
+
+.category-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.category-toggle-button {
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-toggle-button.deactivate {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.category-toggle-button.deactivate:hover {
+    background: #fee2e2;
+}
+
+.category-toggle-button.activate {
+    color: #15803d;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.category-toggle-button.activate:hover {
+    background: #dcfce7;
+}
+
+@media (max-width: 900px) {
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .category-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* ========================================
+   CATEGORY ICON PICKER
+======================================== */
+
+.category-icon-picker {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+    width: 100%;
+    max-width: 520px;
+}
+
+.category-icon-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 4px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 19px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-icon-option:hover {
+    background: #f5f3ff;
+    border-color: #a78bfa;
+    transform: translateY(-2px);
+}
+
+.category-icon-option.selected {
+    background: #ede9fe;
+    border: 2px solid #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+@media (max-width: 480px) {
+    .category-icon-picker {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .category-icon-option {
+        font-size: 21px;
+    }
+}
+/* ========================================
+   CATEGORY ICON GROUPS
+======================================== */
+
+.category-icon-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    width: 100%;
+    max-width: 520px;
+}
+
+.category-icon-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.category-icon-group h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.category-icon-group .category-icon-picker {
+    margin-top: 0;
+}
+
+.category-icon-preview {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 14px 0 28;
+    padding: 12px 14px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    color: #6d28d9;
+    font-size: 12px;
+    font-weight: 600;
+}
+/* ========================================
+   CATEGORY ACTION BUTTONS
+======================================== */
+
+.category-add-button,
+.category-save-button,
+.category-cancel-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    gap: 8px;
+    width: fit-content;
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-save-button {
+    margin-right: 12px;
+}
+
+/* Add & Save */
+
+.category-add-button,
+.category-save-button {
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--primary), #9273e8);
+    border: 1px solid transparent;
+    box-shadow: 0 5px 14px rgba(118, 82, 213, 0.20);
+}
+
+.category-add-button:hover,
+.category-save-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    box-shadow: 0 7px 18px rgba(118, 82, 213, 0.28);
+    transform: translateY(-1px);
+}
+
+.category-add-button:active,
+.category-save-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(118, 82, 213, 0.18);
+}
+
+.category-add-button span {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Cancel */
+
+.category-cancel-button {
+    color: var(--text-secondary);
+    background: #ffffff;
+    border: 1px solid var(--border);
+}
+
+.category-cancel-button:hover:not(:disabled) {
+    color: var(--primary);
+    background: var(--primary-light);
+    border-color: #c4b5fd;
+}
+
+/* Disabled */
+
+.category-save-button:disabled,
+.category-cancel-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Keyboard Focus */
+
+.category-add-button:focus-visible,
+.category-save-button:focus-visible,
+.category-cancel-button:focus-visible {
+    outline: 3px solid rgba(139, 92, 246, 0.25);
+    outline-offset: 2px;
+}

@@ -1,0 +1,420 @@
+
+/* ========================================
+   RECURRING PAGE
+======================================== */
+
+.recurring-content {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 22px;
+    min-width: 0;
+}
+
+/* ========================================
+   RECURRING HEADER
+======================================== */
+
+.recurring-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.recurring-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary, #1f2937);
+}
+
+.add-recurring-button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    background: var(--primary, #6366f1);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+.add-recurring-button:hover {
+    background: var(--primary-dark, #4f46e5);
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   RECURRING FORM
+======================================== */
+
+.recurring-form-container {
+    margin-bottom: 26px;
+    padding: 22px;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    background: var(--background, #f9fafb);
+    scroll-margin-top: 24px;
+}
+
+.recurring-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.recurring-form-header h3 {
+    margin: 0;
+    color: var(--text-primary, #1f2937);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.recurring-form-header button {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary, #6b7280);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.recurring-form-header button:hover {
+    color: var(--primary, #6366f1);
+}
+
+.recurring-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.recurring-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.recurring-form .form-group label {
+    color: var(--text-primary, #374151);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.recurring-form .form-group input,
+.recurring-form .form-group select,
+.recurring-form .form-group textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 8px;
+    background: var(--surface, #ffffff);
+    color: var(--text-primary, #1f2937);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recurring-form .form-group input:focus,
+.recurring-form .form-group select:focus,
+.recurring-form .form-group textarea:focus {
+    border-color: var(--primary, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.recurring-form .form-group textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.recurring-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.cancel-recurring-button,
+.save-recurring-button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.cancel-recurring-button {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.cancel-recurring-button:hover {
+    background: #d1d5db;
+}
+
+.save-recurring-button {
+    background: var(--primary, #6366f1);
+    color: #ffffff;
+}
+
+.save-recurring-button:hover {
+    background: var(--primary-dark, #4f46e5);
+}
+
+.cancel-recurring-button:disabled,
+.save-recurring-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   RECURRING FILTERS
+======================================== */
+
+.recurring-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.recurring-filters select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 8px;
+    background: var(--surface, #ffffff);
+    color: var(--text-primary, #374151);
+    font-size: 14px;
+    outline: none;
+}
+
+.recurring-filters select:focus {
+    border-color: var(--primary, #6366f1);
+}
+
+/* ========================================
+   RECURRING TABLE
+======================================== */
+
+.recurring-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+}
+
+.recurring-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.recurring-table th {
+    padding: 15px 14px;
+    background: var(--background, #f9fafb);
+    color: var(--text-secondary, #6b7280);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.recurring-table td {
+    padding: 15px 14px;
+    color: var(--text-primary, #374151);
+    font-size: 13px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    vertical-align: middle;
+}
+
+.recurring-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.recurring-table tbody tr:hover {
+    background: var(--background, #f9fafb);
+}
+
+.recurring-table td strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.recurring-table td small {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-secondary, #9ca3af);
+    font-size: 11px;
+}
+
+.recurring-empty {
+    padding: 40px 20px !important;
+    text-align: center;
+}
+
+.recurring-empty p {
+    margin: 0 0 8px;
+    color: var(--text-primary, #374151);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.recurring-empty span {
+    color: var(--text-secondary, #9ca3af);
+    font-size: 13px;
+}
+
+/* ========================================
+   RECURRING STATUS
+======================================== */
+
+.recurring-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.recurring-status.active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.recurring-status.inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ========================================
+   RECURRING ACTIONS
+======================================== */
+
+.recurring-actions {
+    white-space: nowrap;
+}
+
+.recurring-actions button {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.recurring-edit-button {
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+.recurring-edit-button:hover {
+    background: #e0e7ff;
+}
+
+.recurring-activate-button {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.recurring-activate-button:hover {
+    background: #bbf7d0;
+}
+
+.recurring-deactivate-button {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.recurring-deactivate-button:hover {
+    background: #fecaca;
+}
+
+.recurring-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 768px) {
+    .recurring-content {
+        padding: 16px;
+    }
+
+    .recurring-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .add-recurring-button {
+        width: 100%;
+    }
+
+    .recurring-form-container {
+        padding: 16px;
+    }
+
+    .recurring-form {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .recurring-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .recurring-content {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .recurring-header h2 {
+        font-size: 17px;
+    }
+
+    .recurring-form-header h3 {
+        font-size: 16px;
+    }
+
+    .recurring-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cancel-recurring-button,
+    .save-recurring-button {
+        width: 100%;
+    }
+
+    .recurring-table {
+        min-width: 850px;
+    }
+}

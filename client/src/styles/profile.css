@@ -1,0 +1,246 @@
+/* ========================================
+   MY PROFILE PAGE
+======================================== */
+
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.profile-page-heading h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-page-heading p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Profile Overview */
+
+.profile-overview-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.profile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.profile-overview-info h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+.profile-overview-info p {
+    margin: 0 0 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.profile-overview-info span {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Information Cards */
+
+.profile-section-card {
+    padding: 26px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.profile-section-heading {
+    margin-bottom: 24px;
+}
+
+.profile-section-heading h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-section-heading p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.profile-information-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 32px;
+}
+
+.profile-information-item label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.profile-information-item p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Responsive */
+
+@media (max-width: 640px) {
+    .profile-overview-card {
+        padding: 20px;
+    }
+
+    .profile-section-card {
+        padding: 22px 20px;
+    }
+
+    .profile-information-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+.profile-information-item label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 10px;
+}
+
+.profile-information-item .profile-field-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.profile-information-value {
+    padding: 12px 14px;
+    min-height: 46px;
+}
+/* Profile Visibility Button */
+.profile-visibility-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin-left: auto;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.profile-visibility-button:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.profile-information-value {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-information-value p {
+    flex: 1;
+    min-width: 0;
+}
+/* Profile Visibility Icon Size */
+.profile-visibility-button svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+/* Edit Profile Button */
+.profile-edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.profile-edit-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.profile-edit-button {
+    margin-top: 0;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.profile-overview-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-overview-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-edit-button {
+    margin-top: 0;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+/* Profile Validation Error */
+.profile-validation-error {
+    display: block;
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 13px;
+    line-height: 1.4;
+}
