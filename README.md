@@ -76,8 +76,6 @@ Ngoài ra, hệ thống còn hỗ trợ nhiều ngôn ngữ và thiết kế gia
 Hệ thống hỗ trợ bốn ngôn ngữ:
 - Tiếng Việt (Vietnamese).
 - Tiếng Anh (English).
-- Tiếng Thái (Thai).
-- Tiếng Lào (Lao).
 
 ### 3.9. Thiết kế giao diện đáp ứng (Responsive Design)
 - Hỗ trợ màn hình máy tính (Desktop).
