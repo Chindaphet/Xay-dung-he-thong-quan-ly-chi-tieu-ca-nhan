@@ -126,7 +126,6 @@ Xay-dung-he-thong-quan-ly-chi-tieu-ca-nhan/
 │   │   ├── hooks/
 │   │   ├── locales/
 │   │   │   ├── en/
-│   │   │   ├── th/
 │   │   │   └── vi/
 │   │   ├── pages/
 │   │   ├── services/
@@ -195,21 +194,7 @@ Xay-dung-he-thong-quan-ly-chi-tieu-ca-nhan/
 
 ## 7. Hướng dẫn cài đặt và chạy dự án
 
-### Bước 1. Tải mã nguồn từ GitHub
-
-Mở Terminal hoặc PowerShell và thực hiện:
-
-```bash
-git clone https://github.com/Chindaphet/Xay-dung-he-thong-quan-ly-chi-tieu-ca-nhan.git
-```
-
-Di chuyển vào thư mục dự án:
-
-```bash
-cd Xay-dung-he-thong-quan-ly-chi-tieu-ca-nhan
-```
-
-### Bước 2. Cài đặt các thư viện cần thiết
+### Bước 1. Cài đặt các thư viện cần thiết
 
 Cài đặt thư viện cho Backend:
 
@@ -320,25 +305,9 @@ Hệ thống sử dụng một số cơ chế nhằm tăng cường bảo mật:
 |---|---|
 | vi | Tiếng Việt |
 | en | Tiếng Anh |
-| th | Tiếng Thái |
-| lo | Tiếng Lào |
 
 ## 10. Trạng thái dự án
 
 Dự án được xây dựng nhằm phục vụ mục đích học tập và nghiên cứu trong khuôn khổ đồ án học thuật.
 
 Các chức năng của hệ thống đang được phát triển, kiểm thử và hoàn thiện.
-
-## 11. Tác giả và nguồn mã nguồn
-
-**Tên đề tài:** Xây dựng hệ thống quản lý chi tiêu cá nhân
-
-**Tên hệ thống:** Devo – Personal Expense Management System
-
-**GitHub Repository:**
-
-https://github.com/Chindaphet/Xay-dung-he-thong-quan-ly-chi-tieu-ca-nhan
-
-## 12. Giấy phép
-
-Hiện tại, dự án chưa được công bố theo một giấy phép phần mềm cụ thể (License).
