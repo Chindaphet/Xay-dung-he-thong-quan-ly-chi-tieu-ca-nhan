@@ -1,21 +1,24 @@
-# Devo – Personal Expense Management System
+# Xây dựng hệ thống quản lý chi tiêu cá nhân
+## Devo – Personal Expense Management System
 
-Devo is a web-based personal expense management system designed to help users record, monitor, and analyze their income and expenses. It provides financial insights and tools to support better money management and financial discipline.
+## 1. Giới thiệu đề tài
 
-## Features
+Devo là hệ thống quản lý chi tiêu cá nhân được xây dựng dưới dạng ứng dụng web. Hệ thống hỗ trợ người dùng ghi chép, theo dõi và phân tích các khoản thu nhập và chi tiêu, từ đó giúp quản lý tài chính cá nhân hiệu quả và nâng cao ý thức kiểm soát chi tiêu.
 
-- **User Authentication** – Register, log in, and securely manage user accounts.
-- **Password Recovery** – Reset forgotten passwords through email.
-- **Dashboard** – View financial summaries, income and expense trends, and expense categories.
-- **Transaction Management** – Record and manage income and expenses.
-- **Category Management** – Organize transactions into categories.
-- **Payment Method Management** – Manage payment methods.
-- **Budget Management** – Set and monitor spending budgets.
-- **Recurring Transactions** – Manage scheduled income and expenses.
-- **Multi-language Support** – Vietnamese, English, Thai, and Lao.
-- **Responsive Design** – Access the system on desktop, tablet, and mobile devices.
+## 2. Chức năng chính
 
-## Technology Stack
+- **Quản lý tài khoản:** Đăng ký, đăng nhập và quản lý thông tin tài khoản.
+- **Khôi phục mật khẩu:** Hỗ trợ đặt lại mật khẩu thông qua email.
+- **Bảng điều khiển (Dashboard):** Hiển thị tổng quan thu nhập, chi tiêu, số dư và biểu đồ thống kê.
+- **Quản lý giao dịch:** Thêm, sửa, xóa và theo dõi các khoản thu nhập, chi tiêu.
+- **Quản lý danh mục:** Phân loại các giao dịch theo từng danh mục.
+- **Quản lý phương thức thanh toán:** Quản lý các phương thức thanh toán.
+- **Quản lý ngân sách:** Thiết lập và theo dõi ngân sách chi tiêu.
+- **Giao dịch định kỳ:** Quản lý các khoản thu nhập và chi tiêu lặp lại theo lịch.
+- **Đa ngôn ngữ:** Hỗ trợ tiếng Việt, tiếng Anh, tiếng Thái và tiếng Lào.
+- **Giao diện đáp ứng (Responsive Design):** Hỗ trợ máy tính, máy tính bảng và điện thoại di động.
+
+## 3. Công nghệ sử dụng
 
 ### Frontend
 - React
@@ -31,113 +34,28 @@ Devo is a web-based personal expense management system designed to help users re
 - JSON Web Token (JWT)
 - Nodemailer
 
-## Project Structure
+## 4. Cấu trúc dự án
 
-```text
-personal-expense-management/
-├── client/                 # React frontend
-├── server/                 # Express backend
-│   ├── database/
-│   │   └── migrations/
-│   └── src/
-│       ├── config/
-│       ├── controllers/
-│       ├── jobs/
-│       ├── middlewares/
-│       ├── repositories/
-│       ├── routes/
-│       ├── services/
-│       ├── utils/
-│       └── validators/
-├── .env.example
-├── .gitignore
-├── package.json
-└── README.md
-```
+## 5. Hướng dẫn cài đặt và chạy dự án
 
-## Getting Started
-
-### Prerequisites
-
-Make sure you have installed:
-
+### Yêu cầu hệ thống
 - Node.js
 - npm
 - PostgreSQL
 - Git
 
-### 1. Clone the repository
+### Cài đặt
+1. Tải mã nguồn từ GitHub.
+2. Cài đặt các thư viện cần thiết cho Frontend và Backend.
+3. Tạo và cấu hình tệp `.env` dựa trên `.env.example`.
+4. Tạo cơ sở dữ liệu PostgreSQL có tên `personal_expense`.
+5. Chạy tệp migration để khởi tạo cấu trúc cơ sở dữ liệu.
+6. Khởi động Backend và Frontend.
 
-```bash
-git clone https://github.com/Chindaphet/personal-expense-management.git
-cd personal-expense-management
-```
+## 6. Ngôn ngữ hỗ trợ
+- Tiếng Việt (vi)
+- Tiếng Anh (en)
 
-### 2. Install dependencies
+## 7. Trạng thái dự án
 
-```bash
-npm install
-```
-
-Install frontend dependencies:
-
-```bash
-cd client
-npm install
-```
-
-Install backend dependencies:
-
-```bash
-cd ../server
-npm install
-```
-
-### 3. Configure environment variables
-
-Create a `.env` file in the project root based on `.env.example`.
-
-```bash
-copy .env.example .env
-```
-
-Update the environment variables with your local PostgreSQL and application configuration.
-
-### 4. Set up the database
-
-Create a PostgreSQL database named `personal_expense`.
-
-Run the SQL migration file:
-
-```text
-server/database/migrations/001_initial_schema.sql
-```
-
-### 5. Run the application
-
-Start the backend:
-
-```bash
-cd server
-npm run dev
-```
-
-Start the frontend in another terminal:
-
-```bash
-cd client
-npm run dev
-```
-
-## Supported Languages
-
-- Vietnamese (vi)
-- English (en)
-
-## Project Status
-
-The project is under development as an academic project.
-
-## License
-
-No license has been specified yet.
+Dự án được phát triển phục vụ mục đích học tập và nghiên cứu trong khuôn khổ đồ án học thuật.
