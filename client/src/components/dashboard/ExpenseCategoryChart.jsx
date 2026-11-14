@@ -8,7 +8,7 @@ import {
 import { Doughnut } from "react-chartjs-2";
 import useLanguage from "../../hooks/useLanguage";
 
-ChartJS.register(ArcElement,Tooltip);
+ChartJS.register( ArcElement,Tooltip);
 
 const DEFAULT_COLORS = [
     "#7652D5",

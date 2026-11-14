@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 
-import {
+import { 
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
