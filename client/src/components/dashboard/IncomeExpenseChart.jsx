@@ -36,12 +36,10 @@ const getDateParts = (dateString) => {
     );
 
     if (!match) return null;
-
-    return {
-        year: Number(match[1]),
-        month: Number(match[2]),
-        day: Number(match[3]),
-    };
+        return {
+            year: Number(match[1]),
+            month: Number(match[2]),
+            day: Number(match[3]),};
 };
 
 // Get Monday of the week
@@ -51,9 +49,7 @@ const getWeekStart = (dateString) => {
     if (!parts) return null;
 
     const date = new Date(
-        Date.UTC(parts.year, parts.month - 1, parts.day)
-    );
-
+        Date.UTC( parts.year,  parts.month - 1,  parts.day));
     const day = date.getUTCDay();
     const difference = day === 0 ? -6 : 1 - day;
 
@@ -102,15 +98,12 @@ const groupDataByPeriod = (data, period) => {
                 income: 0,
                 expenses: 0,
             };
-        }
-
+        }        
         groupedData[periodKey].income += Number(
-            item.income || 0
-        );
+            item.income || 0);
 
         groupedData[periodKey].expenses += Number(
-            item.expenses || 0
-        );
+            item.expenses || 0);
     });
 
     return Object.entries(groupedData)
@@ -141,8 +134,7 @@ function IncomeExpenseChart({ data = [] }) {
             period === "monthly"
                 ? formatMonthLabel(item.period)
                 : formatWeekLabel(item.period)
-        ),
-
+            ),
         datasets: [
             {
                 label: t("dashboard.income"),
@@ -211,22 +203,16 @@ function IncomeExpenseChart({ data = [] }) {
         scales: {
             x: {
                 grid: {
-                    display: false,
-                },
-
-                ticks: {
-                    autoSkip: true,
-                    maxRotation: 0,
-                },
+                    display: false,},
+                    ticks: {autoSkip: true,maxRotation: 0,},
             },
 
             y: {
                 beginAtZero: true,
 
-                grid: {
+                grid: { 
                     color: "rgba(150, 150, 150, 0.12)",
-                },
-
+                },                
                 ticks: {
                     callback: (value) =>
                         new Intl.NumberFormat("vi-VN", {
@@ -249,20 +235,17 @@ function IncomeExpenseChart({ data = [] }) {
                 <div className="chart-period-controls">
                     <button
                         type="button"
-                        className={
-                            period === "monthly" ? "active" : ""
-                        }
-                        onClick={() => setPeriod("monthly")}
-                    >
+                        className={period === "monthly" ? "active" : ""}
+
+                        onClick={() => setPeriod("monthly")}>
                         {t("dashboard.monthly")}
                     </button>
 
                     <button
                         type="button"
-                        className={
-                            period === "weekly" ? "active" : ""
-                        }
-                        onClick={() => setPeriod("weekly")}
+                        className={period === "weekly" ? "active" : ""}
+                        onClick={() =>
+                        setPeriod("weekly")}
                     >
                         {t("dashboard.weekly")}
                     </button>

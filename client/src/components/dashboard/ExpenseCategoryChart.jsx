@@ -8,10 +8,7 @@ import {
 import { Doughnut } from "react-chartjs-2";
 import useLanguage from "../../hooks/useLanguage";
 
-ChartJS.register(
-    ArcElement,
-    Tooltip
-);
+ChartJS.register(ArcElement,Tooltip);
 
 const DEFAULT_COLORS = [
     "#7652D5",
@@ -36,26 +33,16 @@ function ExpenseCategoryChart({ data = [] }) {
     const { t } = useLanguage();
 
     const totalExpenses = data.reduce(
-        (sum, item) =>
-            sum + Number(item.total_amount || 0),
-        0
-    );
-
-    const chartData = {
-        labels: data.map((item) => item.category_name),
-
+        (sum, item) => sum + Number(item.total_amount || 0),0);
+    const chartData = { labels: data.map((item) => item.category_name),
         datasets: [
             {
                 data: data.map((item) =>
-                    Number(item.total_amount || 0)
-                ),
-
+                    Number(item.total_amount || 0)),
                 backgroundColor: data.map(
                     (item, index) =>
                         item.category_color ||
-                        DEFAULT_COLORS[index % DEFAULT_COLORS.length]
-                ),
-
+                        DEFAULT_COLORS[index % DEFAULT_COLORS.length]),
                 borderWidth: 3,
                 borderColor: "#FFFFFF",
                 hoverOffset: 8,
@@ -67,12 +54,7 @@ function ExpenseCategoryChart({ data = [] }) {
         responsive: true,
         maintainAspectRatio: false,
         cutout: "68%",
-
-        plugins: {
-            legend: {
-                display: false,
-            },
-
+        plugins: {legend: {display: false,},
             tooltip: {
                 callbacks: {
                     label: (context) => {
@@ -105,14 +87,9 @@ function ExpenseCategoryChart({ data = [] }) {
                     <div className="doughnut-chart-container">
                         <Doughnut
                             data={chartData}
-                            options={options}
-                        />
-
-                        <div className="doughnut-center">
-                            <span>
-                                {t("dashboard.totalExpensesLabel")}
-                            </span>
-
+                            options={options}/>
+                            <div className="doughnut-center">
+                            <span>{t("dashboard.totalExpensesLabel")}</span>
                             <strong>
                                 {new Intl.NumberFormat("vi-VN", {
                                     maximumFractionDigits: 1,
@@ -127,58 +104,38 @@ function ExpenseCategoryChart({ data = [] }) {
                     <div className="category-chart-details">
                         {data.map((item, index) => {
                             const amount = Number(
-                                item.total_amount || 0
-                            );
-
-                            const percentage = totalExpenses > 0
+                                item.total_amount || 0);
+                                const percentage = totalExpenses > 0
                                 ? (amount / totalExpenses) * 100
                                 : 0;
 
-                            const color =
-                                item.category_color ||
-                                DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+                                const color =
+                                    item.category_color ||
+                                    DEFAULT_COLORS[index % DEFAULT_COLORS.length];
 
-                            return (
-                                <div
-                                    className="category-detail-item"
-                                    key={item.category_id || index}
-                                >
-                                    <div className="category-detail-info">
-                                        <span
-                                            className="category-detail-dot"
-                                            style={{
-                                                backgroundColor: color,
-                                            }}
-                                        />
-
-                                        <span className="category-detail-name">
-                                            {item.category_name}
-                                        </span>
+                                return (
+                                    <div
+                                        className="category-detail-item"
+                                        key={item.category_id || index}>
+                                        <div className="category-detail-info">
+                                            <span
+                                                className="category-detail-dot"
+                                                style={{backgroundColor: color,}}/>
+                                                <span className="category-detail-name">{item.category_name}</span>
+                                        </div>
+                                        <div className="category-detail-values">
+                                            <strong>{formatVND(amount)}</strong>
+                                            <span>{percentage.toFixed(1)}%</span>
+                                        </div>
                                     </div>
-
-                                    <div className="category-detail-values">
-                                        <strong>
-                                            {formatVND(amount)}
-                                        </strong>
-
-                                        <span>
-                                            {percentage.toFixed(1)}%
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div className="chart-empty">
-                    {t("dashboard.noExpenseData")}
-                </div>
+                ) : (
+                    <div className="chart-empty">{t("dashboard.noExpenseData")}</div>
             )}
-
-            <p className="category-chart-note">
-                {t("dashboard.expenseDistributionNote")}
-            </p>
+            <p className="category-chart-note">{t("dashboard.expenseDistributionNote")}</p>
         </section>
     );
 }

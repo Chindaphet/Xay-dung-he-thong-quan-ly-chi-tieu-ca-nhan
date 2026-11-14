@@ -10,7 +10,6 @@ const formatVND = (value) => {
 
 const formatDate = (date, language) => {
     if (!date) return "-";
-
     return new Intl.DateTimeFormat(
         language === "vi" ? "vi-VN" : "en-US",
         {
@@ -31,12 +30,10 @@ function RecentTransactions({ data = [] }) {
                     <h3>{t("recentTransactions.title")}</h3>
                     <p>{t("recentTransactions.subtitle")}</p>
                 </div>
-
                 <span className="transaction-count">
                     {data.length} {t("recentTransactions.records")}
                 </span>
             </div>
-
             <div className="transactions-table-wrapper">
                 <table className="transactions-table">
                     <thead>
@@ -45,9 +42,7 @@ function RecentTransactions({ data = [] }) {
                             <th>{t("recentTransactions.category")}</th>
                             <th>{t("recentTransactions.date")}</th>
                             <th>{t("recentTransactions.type")}</th>
-                            <th className="amount-column">
-                                {t("recentTransactions.amount")}
-                            </th>
+                            <th className="amount-column">{t("recentTransactions.amount")}</th>
                         </tr>
                     </thead>
 
@@ -56,34 +51,23 @@ function RecentTransactions({ data = [] }) {
                             data.map((transaction) => {
                                 const isIncome =
                                     transaction.type === "income";
-
                                 return (
-                                    <tr
-                                        key={transaction.transactions_id}
-                                    >
+                                    <tr key={transaction.transactions_id}>
                                         <td>
                                             <div className="transaction-description">
-                                                <strong>
-                                                    {transaction.description || t("recentTransactions.untitled")}
-                                                </strong>
-
+                                                <strong>{transaction.description || t("recentTransactions.untitled")}</strong>
                                                 <span>
                                                     {transaction.payment_method_name ||
                                                         t("recentTransactions.noPaymentMethod")}
                                                 </span>
                                             </div>
                                         </td>
-
                                         <td>
-                                            {transaction.category_name ||
-                                                t("recentTransactions.uncategorized")}
+                                            {transaction.category_name ||t("recentTransactions.uncategorized")}
+                                                
                                         </td>
-
                                         <td>
-                                            {formatDate(
-                                                transaction.transaction_date,
-                                                language
-                                            )}
+                                            {formatDate(transaction.transaction_date,language)}
                                         </td>
 
                                         <td>
@@ -92,8 +76,7 @@ function RecentTransactions({ data = [] }) {
                                                     isIncome
                                                         ? "type-income"
                                                         : "type-expense"
-                                                }`}
-                                            >
+                                                }`}>
                                                 {isIncome
                                                     ? t("recentTransactions.income")
                                                     : t("recentTransactions.expense")}
@@ -106,8 +89,7 @@ function RecentTransactions({ data = [] }) {
                                                     ? "amount-income"
                                                     : "amount-expense"
                                                 
-                                            }`}
-                                        >
+                                            }`}>
                                             {isIncome ? "+" : "-"}
                                             {formatVND(
                                                 transaction.amount
@@ -118,10 +100,8 @@ function RecentTransactions({ data = [] }) {
                             })
                         ) : (
                             <tr>
-                                <td
-                                    colSpan="5"
-                                    className="table-empty"
-                                >
+                                <td colSpan="5"
+                                    className="table-empty">
                                     {t("recentTransactions.empty")}
                                 </td>
                             </tr>
@@ -132,5 +112,4 @@ function RecentTransactions({ data = [] }) {
         </section>
     );
 }
-
 export default RecentTransactions;

@@ -13,11 +13,7 @@ import {
 } from "../services/api";
 import "../styles/Budget.css";
 
-function Budget({
-    user,
-    isSidebarOpen,
-    onToggleSidebar,
-}) {
+function Budget({user,isSidebarOpen,onToggleSidebar,}) {
     const { t, language } = useLanguage();
 
     const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -116,65 +112,65 @@ function Budget({
         };
     }, [selectedMonth,reloadKey, t]);
     // Load expense categories
-useEffect(() => {
-    let cancelled = false;
+    useEffect(() => {
+        let cancelled = false;
 
-    const loadCategories = async () => {
-        try {
-            setLoadingCategories(true);
+        const loadCategories = async () => {
+            try {
+                setLoadingCategories(true);
 
-            const response = await getCategories();
+                const response = await getCategories();
 
-            if (!cancelled) {
-                const expenseCategories = (response.data || []).filter(
-                    (category) => category.type === "expense"
-                );
+                if (!cancelled) {
+                    const expenseCategories = (response.data || []).filter(
+                        (category) => category.type === "expense"
+                    );
 
-                setCategories(expenseCategories);
+                    setCategories(expenseCategories);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setCategoryBudgetError(
+                        err.message || "Failed to load categories."
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingCategories(false);
+                }
             }
-        } catch (err) {
-            if (!cancelled) {
-                setCategoryBudgetError(
-                    err.message || "Failed to load categories."
-                );
-            }
-        } finally {
-            if (!cancelled) {
-                setLoadingCategories(false);
-            }
+        };
+
+        loadCategories();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+    useEffect(() => {
+        if (isEditingBudget && budgetEditFormRef.current) {
+            budgetEditFormRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
         }
-    };
-
-    loadCategories();
-
-    return () => {
-        cancelled = true;
-    };
-}, []);
-useEffect(() => {
-    if (isEditingBudget && budgetEditFormRef.current) {
-        budgetEditFormRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-        });
-    }
-}, [isEditingBudget,t]);
-useEffect(() => {
-    if (editingCategoryBudgetId && categoryEditFormRef.current) {
-        categoryEditFormRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-        });
-    }
-}, [editingCategoryBudgetId,t]);
-useEffect(() => {
-    if (isAddingCategoryBudget && categoryAddFormRef.current) {
-        categoryAddFormRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-        });
-    }
-}, [isAddingCategoryBudget,t]);
+    }, [isEditingBudget,t]);
+    useEffect(() => {
+        if (editingCategoryBudgetId && categoryEditFormRef.current) {
+            categoryEditFormRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    }, [editingCategoryBudgetId,t]);
+    useEffect(() => {
+        if (isAddingCategoryBudget && categoryAddFormRef.current) {
+            categoryAddFormRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    }, [isAddingCategoryBudget,t]);
 
     const handleCreateBudget = async (event) => {
     event.preventDefault();
@@ -202,7 +198,7 @@ useEffect(() => {
     } finally {
         setSavingBudget(false);
     }
-};
+    };
     const handleUpdateBudget = async (event) => {
     event.preventDefault();
 
