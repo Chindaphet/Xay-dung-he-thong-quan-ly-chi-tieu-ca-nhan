@@ -1,15 +1,9 @@
 
 const pool = require("../config/database");
-
 const recurringRepository = require("../repositories/recurring.repository");
-
 const categoryRepository = require("../repositories/category.repository");
 const paymentMethodRepository = require("../repositories/payment-method.repository");
-
-const {
-    getNextDueDate,
-} = require("../utils/recurring-date.util");
-
+const {getNextDueDate,} = require("../utils/recurring-date.util");
 const {
     validateRecurring,
     validateRecurringUpdate,
@@ -17,10 +11,8 @@ const {
     validateRecurringStatus,
 } = require("../validators/recurring.validator");
 
-
 // Maximum occurrences processed per recurring transaction per run
 const MAX_OCCURRENCES = 1000;
-
 
 // Create a standard API error
 const createError = (message, status = 400) => {
@@ -28,7 +20,6 @@ const createError = (message, status = 400) => {
     error.status = status;
     return error;
 };
-
 
 // Handle database errors
 const handleDatabaseError = (error) => {
@@ -56,7 +47,6 @@ const handleDatabaseError = (error) => {
     throw error;
 };
 
-
 // Validate YYYY-MM-DD
 const validateCurrentDate = (dateString) => {
     if (
@@ -69,7 +59,6 @@ const validateCurrentDate = (dateString) => {
     }
 
     const [year, month, day] = dateString.split("-").map(Number);
-
     const date = new Date(
         Date.UTC(year, month - 1, day)
     );
@@ -83,12 +72,9 @@ const validateCurrentDate = (dateString) => {
     }
 };
 
-
 // Get today's date using the application timezone
 const getCurrentDate = () => {
-    const timeZone =
-        process.env.APP_TIMEZONE || "Asia/Ho_Chi_Minh";
-
+    const timeZone =process.env.APP_TIMEZONE || "Asia/Ho_Chi_Minh";
     const parts = new Intl.DateTimeFormat(
         "en-CA",
         {
@@ -98,16 +84,10 @@ const getCurrentDate = () => {
             day: "2-digit",
         }
     ).formatToParts(new Date());
-
     const values = {};
-
-    for (const part of parts) {
-        values[part.type] = part.value;
-    }
-
+    for (const part of parts) {values[part.type] = part.value;}
     return `${values.year}-${values.month}-${values.day}`;
 };
-
 
 // Validate request data
 const checkValidation = (validation, message) => {
@@ -118,7 +98,6 @@ const checkValidation = (validation, message) => {
     }
 };
 
-
 // Validate recurring ID
 const validateId = (recurringId) => {
     if (!validateRecurringId(recurringId)) {
@@ -126,36 +105,22 @@ const validateId = (recurringId) => {
     }
 };
 
-
 // Find an existing recurring transaction
-const getExistingRecurring = async (
-    recurringId,
-    userId
-) => {
+const getExistingRecurring = async (recurringId,userId) => {
     validateId(recurringId);
-
     const recurring =
-        await recurringRepository.findByIdAndUserId(
-            recurringId,
-            userId
-        );
-
+        await recurringRepository.findByIdAndUserId(recurringId,userId);
     if (!recurring) {
         throw createError(
             "Recurring transaction not found.",
             404
         );
     }
-
     return recurring;
 };
 
-
 // Validate category and payment method for CRUD
-const validateActiveReferences = async (
-    userId,
-    data
-) => {
+const validateActiveReferences = async (userId,data) => {
     const category =
         await categoryRepository.findActiveByIdAndUserId(
             data.categoryId,
@@ -194,7 +159,6 @@ const validateActiveReferences = async (
     }
 };
 
-
 // Convert database fields to validator fields
 const mapRecurringToData = (recurring) => ({
     categoryId: recurring.category_id,
@@ -207,50 +171,30 @@ const mapRecurringToData = (recurring) => ({
     endDate: recurring.end_date,
 });
 
-
 // Find the first occurrence that has not passed
-const getFirstUpcomingDate = (
-    startDate,
-    frequency,
-    currentDate
-) => {
+const getFirstUpcomingDate = (startDate,frequency,currentDate) => {
     let nextDate = startDate;
-
     let iterations = 0;
     const MAX_ITERATIONS = 100000;
-
     while (nextDate < currentDate) {
-        nextDate = getNextDueDate(
-            startDate,
-            nextDate,
-            frequency
-        );
-
+        nextDate = getNextDueDate(startDate,nextDate,frequency);
         iterations++;
-
         if (iterations >= MAX_ITERATIONS) {
             throw createError(
                 "Unable to calculate the next recurring date."
             );
         }
     }
-
     return nextDate;
 };
 
-
 // Check whether a future occurrence remains
-const hasRemainingOccurrence = (
-    nextDueDate,
-    endDate
-) => {
+const hasRemainingOccurrence = (nextDueDate,endDate) => {
     if (!endDate) {
         return true;
     }
-
     return nextDueDate <= endDate;
 };
-
 
 // Get all recurring transactions
 const getAllRecurring = async (userId) => {
@@ -259,73 +203,53 @@ const getAllRecurring = async (userId) => {
     );
 };
 
-
 // Get one recurring transaction
-const getRecurringById = async (
-    recurringId,
-    userId
-) => {
+const getRecurringById = async (recurringId,userId) => {
     return await getExistingRecurring(
         recurringId,
         userId
     );
 };
 
-
 // Create a recurring transaction
-const createRecurring = async (
-    userId,
-    data
-) => {
+const createRecurring = async (userId, data) => {
     const validation = validateRecurring(data);
-
-    checkValidation(
-        validation,
-        "Recurring transaction validation failed."
-    );
-
-    await validateActiveReferences(
-        userId,
-        data
-    );
-
+    checkValidation(validation, "Recurring transaction validation failed.");
+    await validateActiveReferences(userId, data);
     const currentDate = getCurrentDate();
-
-    // Past start dates begin at the next upcoming occurrence
     const nextDueDate = getFirstUpcomingDate(
         data.startDate,
         data.frequency,
         currentDate
     );
-
-    const shouldDeactivate = !hasRemainingOccurrence(
-        nextDueDate,
-        data.endDate
-    );
-
+    const shouldDeactivate = !hasRemainingOccurrence(nextDueDate,data.endDate);
+    const client = await pool.connect();
+    let transactionStarted = false;
     try {
-        const created =
-            await recurringRepository.createRecurring({
-                userId,
-                categoryId: data.categoryId,
-                paymentMethodId: data.paymentMethodId,
-                type: data.type,
-                amount: data.amount,
-                description: data.description,
-                frequency: data.frequency,
-                startDate: data.startDate,
-                endDate: data.endDate,
-                nextDueDate,
-            });
+        await client.query("BEGIN");
+        transactionStarted = true;
+        const created = await recurringRepository.createRecurring({
+            userId,
+            categoryId: data.categoryId,
+            paymentMethodId: data.paymentMethodId,
+            type: data.type,
+            amount: data.amount,
+            description: data.description,
+            frequency: data.frequency,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            nextDueDate,
+        }, client);
 
-        // No occurrence remains within the end date
+        let result = created;
+
         if (shouldDeactivate) {
-            const deactivated =
-                await recurringRepository.toggleRecurring(
-                    created.recurring_id,
-                    userId,
-                    false
-                );
+            const deactivated = await recurringRepository.toggleRecurring(
+                created.recurring_id,
+                userId,
+                false,
+                client
+            );
 
             if (!deactivated) {
                 throw new Error(
@@ -333,41 +257,37 @@ const createRecurring = async (
                 );
             }
 
-            return {
+            result = {
                 ...created,
                 is_active: false,
             };
         }
-
-        return created;
+        await client.query("COMMIT");
+        transactionStarted = false;
+        return result;
 
     } catch (error) {
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                error.rollbackError = rollbackError;
+            }
+        }
         if (error.status) {
             throw error;
         }
-
         handleDatabaseError(error);
+    } finally {
+        client.release();
     }
 };
 
-
 // Update a recurring transaction
-const updateRecurring = async (
-    recurringId,
-    userId,
-    data
-) => {
+const updateRecurring = async (recurringId,userId,data) => {
     const validation = validateRecurringUpdate(data);
-
-    checkValidation(
-        validation,
-        "Recurring transaction update validation failed."
-    );
-
-    const existing = await getExistingRecurring(
-        recurringId,
-        userId
-    );
+    checkValidation(validation,"Recurring transaction update validation failed.");
+    const existing = await getExistingRecurring(recurringId,userId);
 
     // Merge existing values with the updated values
     const updatedData = {
@@ -377,24 +297,14 @@ const updateRecurring = async (
 
     // Validate the complete merged data
     const fullValidation = validateRecurring(updatedData);
-
-    checkValidation(
-        fullValidation,
-        "Recurring transaction data is invalid."
-    );
-
-    await validateActiveReferences(
-        userId,
-        updatedData
-    );
+    checkValidation(fullValidation,"Recurring transaction data is invalid.");
+    await validateActiveReferences(userId,updatedData);
 
     // Recalculate only when the schedule changes
     const scheduleChanged =
         updatedData.frequency !== existing.frequency ||
         updatedData.startDate !== existing.start_date;
-
     let nextDueDate = existing.next_due_date;
-
     if (scheduleChanged) {
         nextDueDate = getFirstUpcomingDate(
             updatedData.startDate,
@@ -402,13 +312,16 @@ const updateRecurring = async (
             getCurrentDate()
         );
     }
-
     const shouldDeactivate = !hasRemainingOccurrence(
         nextDueDate,
         updatedData.endDate
     );
-
+    const client = await pool.connect();
+    let transactionStarted = false;
     try {
+        await client.query("BEGIN");
+        transactionStarted = true;
+
         const updated =
             await recurringRepository.updateRecurring(
                 recurringId,
@@ -423,7 +336,8 @@ const updateRecurring = async (
                     startDate: updatedData.startDate,
                     endDate: updatedData.endDate,
                     nextDueDate,
-                }
+                },
+                client
             );
 
         if (!updated) {
@@ -433,13 +347,16 @@ const updateRecurring = async (
             );
         }
 
+        let result = updated;
+
         // Deactivate if no occurrence remains
         if (shouldDeactivate) {
             const deactivated =
                 await recurringRepository.toggleRecurring(
                     recurringId,
                     userId,
-                    false
+                    false,
+                    client
                 );
 
             if (!deactivated) {
@@ -447,24 +364,27 @@ const updateRecurring = async (
                     "Failed to deactivate recurring transaction."
                 );
             }
-
-            return {
+            result = {
                 ...updated,
                 is_active: false,
             };
         }
-
-        return updated;
-
+        await client.query("COMMIT");
+        transactionStarted = false;
+        return result;
     } catch (error) {
-        if (error.status) {
-            throw error;
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                error.rollbackError = rollbackError;
+            }
         }
-
-        handleDatabaseError(error);
+        throw error;
+    } finally {
+        client.release();
     }
 };
-
 
 // Activate or deactivate a recurring transaction
 const toggleRecurring = async (

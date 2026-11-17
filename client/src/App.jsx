@@ -17,6 +17,7 @@ import Categories from "./pages/Categories";
 import PaymentMethods from "./pages/PaymentMethods";
 import MyProfile from "./pages/MyProfile";
 import Recurring from "./pages/Recurring";
+import SmartAnalysis from "./pages/SmartAnalysis";
 import Sidebar from "./components/layout/Sidebar";
 import "./App.css";
 
@@ -64,11 +65,8 @@ function PasswordToggle({ visible, onClick }) {
     );
 }
 
-
-
 function AuthLanguageSwitcher({ language, changeLanguage, t }) {
     const [isOpen, setIsOpen] = useState(false);
-
     return (
         <div className="auth-language-switcher">
             <div className="auth-language-dropdown">
@@ -179,16 +177,13 @@ function App() {
     // Handle login
     const handleLogin = async (event) => {
         event.preventDefault();
-
         setError("");
         setSubmitting(true);
 
         try {
             const loggedInUser = await login(
                 identifier.trim(),
-                password
-            );
-
+                password);
             setUser(loggedInUser);
             setPassword("");
             setIsSidebarOpen(false);
@@ -203,7 +198,6 @@ function App() {
     // Handle registration
     const handleRegister = async (event) => {
         event.preventDefault();
-
         setRegisterError("");
         setRegisterSuccess("");
 
@@ -221,9 +215,7 @@ function App() {
             );
             return;
         }
-
         setSubmitting(true);
-
         try {
             await register({
                 username: registerUsername.trim(),
@@ -236,7 +228,6 @@ function App() {
             setRegisterSuccess(
                 "Registration successful. Please sign in with your account."
             );
-
             setIdentifier(registerUsername.trim());
             setPassword("");
             setRegisterUsername("");
@@ -244,13 +235,11 @@ function App() {
             setRegisterEmail("");
             setRegisterPassword("");
             setRegisterConfirmPassword("");
-
             setShowRegister(false);
         } catch (error) {
             const details = Array.isArray(error.details)
                 ? error.details.join(" ")
                 : "";
-
             setRegisterError(
                 details || error.message || "Registration failed."
             );
@@ -259,11 +248,9 @@ function App() {
         }
     };
 
-
     // Handle forgot password
     const handleForgotPassword = async (event) => {
         event.preventDefault();
-
         setForgotError("");
         setForgotMessage("");
         setSubmitting(true);
@@ -289,9 +276,7 @@ function App() {
     // Handle password reset
     const handleResetPassword = async (event) => {
         event.preventDefault();
-
         setResetError("");
-
         if (newPassword !== confirmPassword) {
             setResetError("Passwords do not match.");
             return;
@@ -305,7 +290,6 @@ function App() {
         }
 
         setSubmitting(true);
-
         try {
             await resetPassword(resetToken, newPassword);
 
@@ -329,19 +313,19 @@ function App() {
     };
 
     // Handle sidebar
-const handleToggleSidebar = () => {
-    setIsSidebarOpen((previous) => !previous);
-};
+    const handleToggleSidebar = () => {
+        setIsSidebarOpen((previous) => !previous);
+    };
 
-const handleCloseSidebar = () => {
-    setIsSidebarOpen(false);
-};
+    const handleCloseSidebar = () => {
+        setIsSidebarOpen(false);
+    };
 
-// Handle page navigation
-const handleNavigate = (pageId) => {
-    setActivePage(pageId);
-    setIsSidebarOpen(false);
-};
+    // Handle page navigation
+    const handleNavigate = (pageId) => {
+        setActivePage(pageId);
+        setIsSidebarOpen(false);
+    };
 
     // Handle logout
     const handleLogout = async () => {
@@ -402,6 +386,10 @@ if (user) {
         case "recurring":
             currentPage = <Recurring {...pageProps} />;
             break;
+            
+        case "smart-analysis":
+            currentPage = <SmartAnalysis {...pageProps} />;
+            break;
 
         case "dashboard":
         default:
@@ -454,9 +442,9 @@ if (user) {
                     </div>
 
                     <div className="login-heading">
-    <h2>{t("auth.forgotPasswordTitle")}</h2>
-    <p>{t("auth.forgotPasswordSubtitle")}</p>
-</div>
+                    <h2>{t("auth.forgotPasswordTitle")}</h2>
+                    <p>{t("auth.forgotPasswordSubtitle")}</p>
+                </div>
 
 <form onSubmit={handleForgotPassword}>
     <div className="form-group">

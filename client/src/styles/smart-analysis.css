@@ -1,0 +1,352 @@
+
+/* ========================================
+   SMART ANALYSIS
+======================================== */
+
+.smart-analysis-content {
+    padding: 28px 32px;
+    max-width: 1500px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.smart-analysis-filter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.smart-analysis-filter h2,
+.analysis-section h2 {
+    color: var(--text-primary, #242038);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.smart-analysis-filter p {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+    margin: 0;
+}
+
+.smart-analysis-date-filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.smart-analysis-date-filter > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.smart-analysis-date-filter label {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.smart-analysis-date-filter input {
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color, #e7e4ef);
+    border-radius: 9px;
+    background: var(--card-background, #fff);
+    color: var(--text-primary, #242038);
+    font: inherit;
+}
+
+/* Loading and Error */
+
+.smart-analysis-message,
+.smart-analysis-error {
+    padding: 45px 20px;
+    text-align: center;
+    background: var(--card-background, #fff);
+    border-radius: 14px;
+    color: var(--text-secondary, #777487);
+}
+
+.smart-analysis-message .loading-spinner {
+    margin: 0 auto 14px;
+}
+
+.smart-analysis-error {
+    color: #d64545;
+}
+
+.smart-analysis-error button {
+    margin-top: 12px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #7652d5;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Sections */
+
+.smart-analysis-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.analysis-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.analysis-section h2 {
+    margin-bottom: 0;
+}
+
+/* Summary Cards */
+
+.analysis-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.analysis-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(35, 25, 70, 0.04);
+}
+
+.analysis-card span,
+.comparison-grid span,
+.budget-analysis-grid span {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+}
+
+.analysis-card strong {
+    font-size: clamp(19px, 2vw, 25px);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.analysis-card.income strong {
+    color: #16a36a;
+}
+
+.analysis-card.expense strong {
+    color: #e05252;
+}
+
+.analysis-card.balance strong {
+    color: #7652d5;
+}
+
+/* Panels */
+
+.analysis-panel {
+    padding: 24px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(35, 25, 70, 0.04);
+}
+
+/* Expense Comparison */
+
+.comparison-grid,
+.budget-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.comparison-grid > div,
+.budget-analysis-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.comparison-grid strong,
+.budget-analysis-grid strong {
+    color: var(--text-primary, #242038);
+    font-size: 19px;
+    overflow-wrap: anywhere;
+}
+
+/* Category Analysis */
+
+.analysis-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.analysis-category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.analysis-category-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.analysis-category-info strong {
+    color: var(--text-primary, #242038);
+    font-size: 14px;
+}
+
+.analysis-category-info span,
+.analysis-category-percentage {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+}
+
+.analysis-progress {
+    height: 9px;
+    width: 100%;
+    overflow: hidden;
+    background: #eeeaf5;
+    border-radius: 20px;
+}
+
+.analysis-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7652d5, #a58ae9);
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+/* Budget */
+
+.budget-progress-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 24px 0 10px;
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+}
+
+.budget-progress-heading strong {
+    color: #7652d5;
+}
+
+.budget-progress {
+    height: 12px;
+}
+
+/* Insights and Recommendations */
+
+.analysis-insight-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.analysis-insight-card,
+.analysis-recommendation-card {
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+}
+
+.analysis-insight-card {
+    border-left: 4px solid #7652d5;
+}
+
+.analysis-recommendation-card {
+    border-left: 4px solid #16a36a;
+}
+
+.analysis-insight-card strong,
+.analysis-recommendation-card strong {
+    display: block;
+    color: var(--text-primary, #242038);
+    font-size: 14px;
+    text-transform: capitalize;
+    margin-bottom: 9px;
+}
+
+.analysis-insight-card p,
+.analysis-recommendation-card p {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+    .smart-analysis-content {
+        padding: 24px 20px;
+    }
+
+    .analysis-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .smart-analysis-content {
+        padding: 18px 14px;
+    }
+
+    .smart-analysis-filter {
+        align-items: stretch;
+    }
+
+    .smart-analysis-date-filter {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .smart-analysis-date-filter input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .analysis-summary-grid,
+    .comparison-grid,
+    .budget-analysis-grid,
+    .analysis-insight-list {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-card,
+    .analysis-panel {
+        padding: 18px;
+    }
+
+    .analysis-card strong {
+        font-size: 21px;
+    }
+
+    .comparison-grid strong,
+    .budget-analysis-grid strong {
+        font-size: 17px;
+    }
+}

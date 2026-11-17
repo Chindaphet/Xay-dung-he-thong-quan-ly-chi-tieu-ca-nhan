@@ -20,17 +20,17 @@ const translation = {
     forgotPassword: "Forgot Password?",
     resetPassword: "Reset Password",
     usernameOrEmail: "Username or Email",
-identifierPlaceholder: "Enter username or email",
-passwordPlaceholder: "Enter your password",
-signingIn: "Signing in...",
-noAccount: "Don't have an account? Sign Up",
-footer: "Personal Expense Management System",
+    identifierPlaceholder: "Enter username or email",
+    passwordPlaceholder: "Enter your password",
+    signingIn: "Signing in...",
+    noAccount: "Don't have an account? Sign Up",
+    footer: "Personal Expense Management System",
     forgotPasswordTitle: "Forgot Password?",
     forgotPasswordSubtitle: "Enter your email address and we will send you a password reset link if the account exists.",
     forgotEmailPlaceholder: "Enter your email address",
     sending: "Sending...",
     sendResetLink: "Send Reset Link"
-},
+    },
     common: {
         save: "Save",
         cancel: "Cancel",
@@ -54,7 +54,7 @@ footer: "Personal Expense Management System",
     financialTools: "FINANCIAL TOOLS",
     budget: "Budget",
     recurring: "Recurring",
-    analytics: "Smart Analysis",
+    smartAnalysis: "Smart Analysis",
     simulator: "What-if Simulator",
     preferences: "PREFERENCES",
     profile: "My Profile",
@@ -65,7 +65,7 @@ footer: "Personal Expense Management System",
     personalFinance: "Personal Finance",
     openNavigation: "Open navigation menu",
     closeNavigation: "Close navigation menu",
-},
+    },
 
     header: {
         search: "Search...",
@@ -95,12 +95,45 @@ footer: "Personal Expense Management System",
     incomeExpenseDescription: "Financial activity over the selected period",
     noTransactionData: "No transaction data available.",
     expenseByCategoryTitle: "Expense by Category",
-expenseByCategoryDescription: "Where your money goes",
-totalExpensesLabel: "Total Expenses",
-noExpenseData: "No expense data available.",
-expenseDistributionNote: "Distribution of expenses by category.", 
-},
-recentTransactions: {
+    expenseByCategoryDescription: "Where your money goes",
+    totalExpensesLabel: "Total Expenses",
+    noExpenseData: "No expense data available.",
+    expenseDistributionNote: "Distribution of expenses by category.", 
+    },
+
+    smartAnalysis: {
+    title: "Smart Analysis",
+    subtitle: "Understand your spending and improve your financial habits.",
+    overview: "Financial Analysis",
+    description: "Analyze your income, expenses, and budget.",
+    from: "From",
+    to: "To",
+    loading: "Loading analysis data...",
+    loadFailed: "Unable to load smart analysis data.",
+    retry: "Retry",
+    financialSummary: "Financial Summary",
+    totalIncome: "Total Income",
+    totalExpenses: "Total Expenses",
+    netBalance: "Net Balance",
+    expenseComparison: "Expense Comparison",
+    currentExpenses: "Current Period Expenses",
+    previousExpenses: "Previous Period Expenses",
+    percentageChange: "Percentage Change",
+    categoryAnalysis: "Spending by Category",
+    noCategoryData: "No category data available.",
+    budgetAnalysis: "Budget Analysis",
+    budgetAmount: "Budget Amount",
+    budgetExpenses: "Budget Expenses",
+    remainingBudget: "Remaining Budget",
+    budgetUsage: "Budget Usage",
+    noBudgetData: "No budget data available for this period.",
+    insights: "Financial Insights",
+    noInsights: "No insights available.",
+    recommendations: "Recommendations",
+    noRecommendations: "No recommendations available.",
+    },
+
+    recentTransactions: {
     title: "Recent Transactions",
     subtitle: "Your latest income and expenses",
     records: "Records",
@@ -115,7 +148,8 @@ recentTransactions: {
     income: "Income",
     expense: "Expense",
     empty: "No transactions found.",
-},
+    },
+
     transactions: {
     title: "Transactions",
     subtitle: "Manage your income and expenses.",
@@ -154,7 +188,7 @@ recentTransactions: {
     unknown: "Unknown",
     deleteFailed: "Unable to delete transaction.",
     saveFailed: "Unable to save transaction.",
-},
+    },
 
     categories: {
     title: "Categories",
@@ -198,68 +232,60 @@ recentTransactions: {
     createFailed: "Unable to create category.",
     updateFailed: "Unable to update category.",
     statusFailed: "Failed to update category status.",
-},
+    },
     
-paymentMethods: {
+    paymentMethods: {
     title: "Payment Methods",
     subtitle: "Manage your payment methods.",
-
     add: "Add",
     addPaymentMethod: "Add Payment Method",
     editPaymentMethod: "Edit Payment Method",
     addNewPaymentMethod: "Add New Payment Method",
-
     // Keys used by PaymentMethods.jsx
     addNew: "Add New Payment Method",
     edit: "Edit",
     name: "Payment Method Name",
     enterName: "Enter payment method name",
     type: "Payment Method Type",
-
     paymentMethodName: "Payment Method Name",
     enterPaymentMethodName: "Enter payment method name",
     paymentMethodType: "Payment Method Type",
-
     cash: "Cash",
     bankTransfer: "Bank Transfer",
     creditCard: "Credit Card",
     debitCard: "Debit Card",
     eWallet: "E-Wallet",
     other: "Other",
-
     savePaymentMethod: "Save Payment Method",
     updatePaymentMethod: "Update Payment Method",
     save: "Save",
     update: "Update",
     cancel: "Cancel",
     saving: "Saving...",
-
     activate: "Activate",
     deactivate: "Deactivate",
     active: "Active",
     inactive: "Inactive",
-
     loading: "Loading payment methods...",
     loadFailed: "Unable to load payment methods.",
     retry: "Try Again",
-
     paymentMethodsFound: "payment methods found.",
     found: "payment methods found.",
     noPaymentMethods: "No payment methods found.",
     empty: "No payment methods found.",
-
     nameRequired: "Payment method name cannot be empty.",
     createFailed: "Unable to create payment method.",
     updateFailed: "Unable to update payment method.",
     statusFailed: "Failed to update payment method status.",
-},
+    },
+
     summary: {
     totalMoneyReceived: "Total money received",
     totalMoneySpent: "Total money spent",
     netBalance: "Net Balance",
     incomeMinusExpenses: "Income minus expenses",
     selectedPeriod: "Selected period",
-},
+    },
 
     profile: {
     title: "My Profile",
@@ -295,29 +321,26 @@ paymentMethods: {
     hideEmail: "Hide email",
     showUserId: "Show user ID",
     hideUserId: "Hide user ID",
-},
+    },
+
     budget: {
         title: "Budget",
         subtitle: "Plan and manage your monthly budget.",
-
         loading: "Loading budget...",
         loadFailed: "Unable to load budget data.",
         retry: "Try Again",
-
         selectMonth: "Select Month",
         monthlyBudget: "Monthly Budget",
         totalBudget: "Total Budget",
         totalSpent: "Total Spent",
         remainingBudget: "Remaining Budget",
         budgetProgress: "Budget Progress",
-
         createBudget: "Create Budget",
         editBudget: "Edit",
         budgetAmount: "Budget Amount",
         enterBudgetAmount: "Enter budget amount",
         saveBudget: "Save",
         updateBudget: "Update",
-
         categoryBudgets: "Category Budgets",
         addCategoryBudget: "Add",
         editCategoryBudget: "Edit Category Budget",
@@ -325,81 +348,65 @@ paymentMethods: {
         category: "Category",
         allocatedAmount: "Allocated Amount",
         enterAllocatedAmount: "Enter allocated amount",
-
         noBudget: "No budget has been created for this month.",
         noCategoryBudgets: "No category budgets have been added.",
         noAvailableCategories: "No available expense categories.",
-
         exceeded: "Budget Exceeded",
         withinBudget: "Within Budget",
         overBudget: "Over Budget",
         remaining: "Remaining",
         spent: "Spent",
-
         allocationWarning: "The total category budgets exceed the overall budget.",
         exceededAmount: "Amount Exceeded",
         confirmDelete: "Are you sure you want to delete this category budget?",
-
         saveFailed: "Unable to save budget.",
         deleteFailed: "Unable to delete category budget.",
         amountRequired: "Please enter a budget amount greater than zero.",
         categoryRequired: "Please select a category.",
-    },
+        },
+
         recurring: {
         title: "Recurring Transactions",
         subtitle: "Manage your scheduled income and expenses.",
-
         loading: "Loading recurring transactions...",
         loadFailed: "Unable to load recurring transactions.",
         retry: "Try Again",
-
         allRecurring: "All Recurring Transactions",
         addRecurring: "Add Recurring",
         addNewRecurring: "Add New Recurring Transaction",
         editRecurring: "Edit Recurring Transaction",
-
         transactionType: "Transaction Type",
         income: "Income",
         expense: "Expense",
-
         category: "Category",
         selectCategory: "Select Category",
-
         paymentMethod: "Payment Method",
         selectPaymentMethod: "Select Payment Method",
         noPaymentMethod: "No Payment Method",
-
         amount: "Amount (VND)",
         enterAmount: "Enter amount",
-
         description: "Description",
         enterDescription: "Enter description",
-
         frequency: "Frequency",
         daily: "Daily",
         weekly: "Weekly",
         monthly: "Monthly",
         yearly: "Yearly",
-
         startDate: "Start Date",
         endDate: "End Date",
         noEndDate: "No End Date",
         nextDueDate: "Next Due Date",
-
         status: "Status",
         active: "Active",
         inactive: "Inactive",
         activate: "Activate",
         deactivate: "Deactivate",
-
         saveRecurring: "Save Recurring",
         updateRecurring: "Update Recurring",
         cancel: "Cancel",
         edit: "Edit",
-
         noRecurring: "No recurring transactions found.",
         filterHint: "Add a recurring transaction to get started.",
-
         saveFailed: "Unable to save recurring transaction.",
         statusFailed: "Unable to update recurring transaction status.",
         amountRequired: "Please enter an amount greater than zero.",

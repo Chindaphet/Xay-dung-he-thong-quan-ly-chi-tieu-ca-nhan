@@ -238,3 +238,16 @@ export const toggleRecurring = async (
         body: JSON.stringify({ isActive }),
     });
 };
+
+// ========================================
+// SMART ANALYSIS API
+// ========================================
+
+export const getSmartAnalysis = async (startDate, endDate) => {
+    const params = new URLSearchParams({
+        startDate,
+        endDate,
+    });
+
+    return apiRequest(`/smart-analysis?${params.toString()}`);
+};

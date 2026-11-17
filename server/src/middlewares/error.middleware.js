@@ -10,7 +10,6 @@ const errorMiddleware = (err, req, res, next) => {
     console.error("========================================");
 
     const statusCode = err.status || 500;
-
     const response = {
         success: false,
         message:

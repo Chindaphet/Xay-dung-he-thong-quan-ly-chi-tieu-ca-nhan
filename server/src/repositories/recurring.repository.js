@@ -1,19 +1,19 @@
 
 const pool = require("../config/database");
-
 // Create a recurring transaction
-const createRecurring = async ({
-    userId,
-    categoryId,
-    paymentMethodId = null,
-    type,
-    amount,
-    description = null,
-    frequency,
-    startDate,
-    endDate = null,
-    nextDueDate,
-}) => {
+const createRecurring = async (data,client = pool) => {
+    const {
+        userId,
+        categoryId,
+        paymentMethodId = null,
+        type,
+        amount,
+        description = null,
+        frequency,
+        startDate,
+        endDate = null,
+        nextDueDate,
+    } = data;
     const query = `
         INSERT INTO recurring_transactions (
             user_id,
@@ -57,8 +57,7 @@ const createRecurring = async ({
         endDate,
         nextDueDate,
     ];
-
-    const { rows } = await pool.query(query, values);
+    const { rows } = await client.query(query, values);
     return rows[0];
 };
 
@@ -115,10 +114,8 @@ const findByIdAndUserId = async (recurringId, userId) => {
         recurringId,
         userId,
     ]);
-
     return rows[0] || null;
 };
-
 
 // Update a recurring transaction
 const updateRecurring = async (
@@ -134,7 +131,8 @@ const updateRecurring = async (
         startDate,
         endDate = null,
         nextDueDate,
-    }
+    },
+    client = pool
 ) => {
     const query = `
         UPDATE recurring_transactions
@@ -180,13 +178,18 @@ const updateRecurring = async (
         userId,
     ];
 
-    const { rows } = await pool.query(query, values);
+    const { rows } = await client.query(query, values);
     return rows[0] || null;
 };
 
 
 // Activate or deactivate a recurring transaction
-const toggleRecurring = async (recurringId, userId, isActive) => {
+const toggleRecurring = async (
+    recurringId,
+    userId,
+    isActive,
+    client = pool
+) => {
     const query = `
         UPDATE recurring_transactions
         SET is_active = $1
@@ -199,7 +202,7 @@ const toggleRecurring = async (recurringId, userId, isActive) => {
             next_due_date;
     `;
 
-    const { rows } = await pool.query(query, [
+    const { rows } = await client.query(query, [
         isActive,
         recurringId,
         userId,
@@ -251,11 +254,7 @@ const findDueRecurring = async (
 
 // Find and lock one due recurring transaction
 
-const findDueRecurringForUpdate = async (
-    client,
-    recurringId,
-    currentDate
-) => {
+const findDueRecurringForUpdate = async (client,recurringId,currentDate) => {
     const query = `
         SELECT
             recurring_id,
@@ -285,7 +284,6 @@ const findDueRecurringForUpdate = async (
 
     return rows[0] || null;
 };
-
 
 // Create a transaction generated from a recurring schedule
 const createRecurringOccurrence = async (

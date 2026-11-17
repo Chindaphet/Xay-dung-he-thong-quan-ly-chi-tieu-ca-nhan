@@ -11,6 +11,8 @@ const paymentMethodRoutes = require("./routes/payment-method.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const budgetRoutes = require("./routes/budget.routes");
 const recurringRoutes = require("./routes/recurring.routes");
+const smartAnalysisRoutes = require("./routes/smart-analysis.routes");
+const gamificationRoutes = require("./routes/gamification.routes");
 
 // Middleware
 const errorMiddleware = require("./middlewares/error.middleware");
@@ -49,6 +51,8 @@ app.use("/api/payment-methods", paymentMethodRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/budgets", budgetRoutes);
 app.use("/api/recurring", recurringRoutes);
+app.use("/api/smart-analysis", smartAnalysisRoutes);
+app.use("/api/gamification", gamificationRoutes);
 
 // 404 Handler
 app.use((req, res) => {

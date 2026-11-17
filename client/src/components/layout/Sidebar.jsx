@@ -16,7 +16,7 @@ const menuGroups = [
         items: [
             { id: "budget", label: "budget", icon: "◷" },
             { id: "recurring", label: "recurring", icon: "⟳" },
-            { id: "analytics", label: "analytics", icon: "⌁" },
+            { id: "smart-analysis", label: "smartAnalysis", icon: "⌁" },
             { id: "simulator", label: "simulator", icon: "⌘" },
         ],
     },
