@@ -1,8 +1,10 @@
 
 const express = require("express");
+
 const gamificationController = require(
     "../controllers/gamification.controller"
 );
+
 const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -12,20 +14,6 @@ router.get(
     "/",
     authMiddleware,
     gamificationController.getGamificationOverview
-);
-
-// Award points
-router.post(
-    "/points",
-    authMiddleware,
-    gamificationController.awardPoints
-);
-
-// Update user streak
-router.post(
-    "/streak",
-    authMiddleware,
-    gamificationController.updateStreak
 );
 
 // Get achievement progress

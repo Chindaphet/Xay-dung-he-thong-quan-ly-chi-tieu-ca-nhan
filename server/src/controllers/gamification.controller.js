@@ -19,42 +19,6 @@ const getGamificationOverview = async (req, res, next) => {
     }
 };
 
-// Award points
-const awardPoints = async (req, res, next) => {
-    try {
-        const result = await gamificationService.awardPoints({
-            userId: req.user.user_id,
-            ...req.body,
-        });
-
-        return res.status(200).json({
-            success: true,
-            data: result,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-// Update user streak
-const updateStreak = async (req, res, next) => {
-    try {
-        const { activityDate } = req.body;
-
-        const result = await gamificationService.updateStreak(
-            req.user.user_id,
-            activityDate
-        );
-
-        return res.status(200).json({
-            success: true,
-            data: result,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
 // Get achievement progress
 const getAchievementProgress = async (req, res, next) => {
     try {
@@ -95,8 +59,6 @@ const checkAchievements = async (req, res, next) => {
 
 module.exports = {
     getGamificationOverview,
-    awardPoints,
-    updateStreak,
     getAchievementProgress,
     checkAchievements,
 };

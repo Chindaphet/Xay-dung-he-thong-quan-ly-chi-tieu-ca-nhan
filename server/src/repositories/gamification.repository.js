@@ -182,69 +182,112 @@ const updateUserLevel = async (userId) => {
 };
 
 const updateUserStreak = async (userId, activityDate) => {
-    const query = `
-        INSERT INTO user_gamification (
-            user_id,
-            current_streak,
-            longest_streak,
-            last_activity_date
-        )
-        VALUES ($1, 1, 1, $2::DATE)
-        ON CONFLICT (user_id)
-        DO UPDATE SET
-            current_streak = CASE
-                WHEN user_gamification.last_activity_date IS NULL THEN 1
-                WHEN user_gamification.last_activity_date = EXCLUDED.last_activity_date
-                    THEN user_gamification.current_streak
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
 
-                WHEN user_gamification.last_activity_date =
-                    EXCLUDED.last_activity_date - 1
-                    THEN user_gamification.current_streak + 1
+        // Ensure the user's gamification profile exists
+        await client.query(
+            `
+                INSERT INTO user_gamification (user_id)
+                VALUES ($1)
+                ON CONFLICT (user_id) DO NOTHING;
+            `,
+            [userId]
+        );
 
-                WHEN user_gamification.last_activity_date <
-                    EXCLUDED.last_activity_date - 1
-                    THEN 1
+        // Lock the profile to prevent concurrent streak updates
+        const profileResult = await client.query(
+            `
+                SELECT
+                    current_streak,
+                    longest_streak,
+                    last_activity_date
+                FROM user_gamification
+                WHERE user_id = $1
+                FOR UPDATE;
+            `,
+            [userId]
+        );
 
-                ELSE user_gamification.current_streak
-            END,
+        const profile = profileResult.rows[0];
+        const currentDate = new Date(`${activityDate}T00:00:00Z`);
+        if (Number.isNaN(currentDate.getTime()) ||
+            currentDate.toISOString().slice(0, 10) !== activityDate) {
+            throw new Error("Invalid activity date.");
+        }
 
-            longest_streak = GREATEST(
-                user_gamification.longest_streak,
-                CASE
-                    WHEN user_gamification.last_activity_date IS NULL THEN 1
-                    WHEN user_gamification.last_activity_date = EXCLUDED.last_activity_date
-                        THEN user_gamification.current_streak
-                    WHEN user_gamification.last_activity_date =
-                        EXCLUDED.last_activity_date - 1
-                        THEN user_gamification.current_streak + 1
-                    WHEN user_gamification.last_activity_date <
-                        EXCLUDED.last_activity_date - 1
-                        THEN 1
+        const previousDate = profile.last_activity_date
+            ? new Date(profile.last_activity_date).toISOString().slice(0, 10)
+            : null;
 
-                    ELSE user_gamification.current_streak
-                END
-            ),
+        let currentStreak = profile.current_streak;
+        let longestStreak = profile.longest_streak;
+        let streakExtended = false;
 
-            last_activity_date = GREATEST(
-                user_gamification.last_activity_date,
-                EXCLUDED.last_activity_date
-            ),
+        if (!previousDate) {
+            currentStreak = 1;
+        } else if (activityDate > previousDate) {
+            const expectedPreviousDate = new Date(currentDate);
+            expectedPreviousDate.setUTCDate(
+                expectedPreviousDate.getUTCDate() - 1
+            );
 
-            updated_at = CURRENT_TIMESTAMP
+            const expectedDate = expectedPreviousDate
+                .toISOString()
+                .slice(0, 10);
 
-        RETURNING
-            current_streak,
-            longest_streak,
-            last_activity_date;
-    `;
+            if (previousDate === expectedDate) {
+                currentStreak += 1;
+                streakExtended = true;
+            } else {
+                currentStreak = 1;
+            }
+        }
 
-    const { rows } = await pool.query(query, [
-        userId,
-        activityDate,
-    ]);
+        longestStreak = Math.max(longestStreak, currentStreak);
 
-    return rows[0] || null;
+        const lastActivityDate =
+            !previousDate || activityDate > previousDate
+                ? activityDate
+                : previousDate;
+
+        const updateResult = await client.query(
+            `
+                UPDATE user_gamification
+                SET
+                    current_streak = $1,
+                    longest_streak = $2,
+                    last_activity_date = $3::DATE,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = $4
+                RETURNING
+                    current_streak,
+                    longest_streak,
+                    last_activity_date;
+            `,
+            [
+                currentStreak,
+                longestStreak,
+                lastActivityDate,
+                userId,
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return {
+            ...updateResult.rows[0],
+            streakExtended,
+        };
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
 };
+
 
 const findAllAchievementsByUserId = async (userId) => {
     const query = `
