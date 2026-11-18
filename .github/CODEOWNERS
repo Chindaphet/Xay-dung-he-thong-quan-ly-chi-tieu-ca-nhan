@@ -1,0 +1,6 @@
+
+# Require repository owner to review all files
+* @Chindaphet
+
+# Protect CODEOWNERS file itself
+/.github/CODEOWNERS @Chindaphet
