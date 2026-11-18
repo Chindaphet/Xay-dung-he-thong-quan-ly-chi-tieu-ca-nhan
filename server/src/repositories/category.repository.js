@@ -26,14 +26,7 @@ const findActiveByIdAndUserId = async (categoryId, userId) => {
 };
 
 // Create a new category
-const createCategory = async ({
-    userId,
-    name,
-    type,
-    color = null,
-    icon = null,
-    isDefault = false,
-}) => {
+const createCategory = async ({userId, name,type,color = null,icon = null,isDefault = false,}) => {
     const query = `
         INSERT INTO categories (
             user_id,
@@ -126,15 +119,7 @@ const findByIdAndUserId = async (categoryId, userId) => {
 };
 
 // Update a category
-const updateCategory = async (
-    categoryId,
-    userId,
-    {
-        name,
-        color,
-        icon,
-    }
-) => {
+const updateCategory = async (categoryId,userId,{name,color,icon,}) => {
     const query = `
         UPDATE categories
         SET
@@ -167,11 +152,7 @@ const updateCategory = async (
 };
 
 // Activate or deactivate a category
-const toggleCategory = async (
-    categoryId,
-    userId,
-    isActive
-) => {
+const toggleCategory = async (categoryId,userId,isActive) => {
     const query = `
         UPDATE categories
         SET is_active = $1

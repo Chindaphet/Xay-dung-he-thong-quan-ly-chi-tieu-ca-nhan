@@ -1,6 +1,5 @@
 
 const API_BASE_URL = "http://localhost:6116/api";
-
 // Send an HTTP request to the backend
 const apiRequest = async (endpoint, options = {}) => {
     const token = localStorage.getItem("accessToken");
@@ -60,37 +59,29 @@ export const createCategory = async (categoryData) => {
     });
 };
 
-export const updateCategory = async (
-    categoryId,
-    categoryData
-) => {
+export const updateCategory = async (categoryId,categoryData) => {
     return apiRequest(`/categories/${categoryId}`, {
         method: "PUT",
         body: JSON.stringify(categoryData),
     });
 };
 
-export const toggleCategory = async (
-    categoryId,
-    isActive
-) => {
+export const toggleCategory = async (categoryId,isActive) => {
     return apiRequest(`/categories/${categoryId}/status`, {
         method: "PATCH",
         body: JSON.stringify({ isActive }),
     });
 };
-;
 
 // Payment Method API
-export const getPaymentMethods = async (
-    includeInactive = false
-) => {
+export const getPaymentMethods = async (includeInactive = false) => {
     const params = new URLSearchParams({
         includeInactive: String(includeInactive),
     });
 
     return apiRequest(`/payment-methods?${params.toString()}`);
 };
+
 export const createPaymentMethod = async (paymentMethodData) => {
     return apiRequest("/payment-methods", {
         method: "POST",
@@ -98,10 +89,7 @@ export const createPaymentMethod = async (paymentMethodData) => {
     });
 };
 
-export const updatePaymentMethod = async (
-    paymentMethodId,
-    paymentMethodData
-) => {
+export const updatePaymentMethod = async (paymentMethodId,paymentMethodData) => {
     return apiRequest(`/payment-methods/${paymentMethodId}`, {
         method: "PUT",
         body: JSON.stringify(paymentMethodData),
@@ -115,8 +103,6 @@ export const togglePaymentMethod = async (paymentMethodId,isActive) => {
     });
 };
 
-// Budget APIs
-
 // Get monthly budget overview
 export const getBudgetOverview = async (month) => {
     const params = new URLSearchParams({
@@ -128,7 +114,6 @@ export const getBudgetOverview = async (month) => {
     );
 };
 
-
 // Create a monthly budget
 export const createBudget = async (budgetData) => {
     return apiRequest("/budgets", {
@@ -137,24 +122,16 @@ export const createBudget = async (budgetData) => {
     });
 };
 
-
 // Update the overall monthly budget
-export const updateBudget = async (
-    budgetId,
-    budgetData
-) => {
+export const updateBudget = async (budgetId,budgetData) => {
     return apiRequest(`/budgets/${budgetId}`, {
         method: "PUT",
         body: JSON.stringify(budgetData),
     });
 };
 
-
 // Add a category budget
-export const createCategoryBudget = async (
-    budgetId,
-    categoryData
-) => {
+export const createCategoryBudget = async (budgetId,categoryData) => {
     return apiRequest(
         `/budgets/${budgetId}/categories`,
         {
@@ -164,13 +141,8 @@ export const createCategoryBudget = async (
     );
 };
 
-
 // Update a category budget
-export const updateCategoryBudget = async (
-    budgetId,
-    categoryId,
-    categoryData
-) => {
+export const updateCategoryBudget = async (budgetId,categoryId,categoryData) => {
     return apiRequest(
         `/budgets/${budgetId}/categories/${categoryId}`,
         {
@@ -180,12 +152,8 @@ export const updateCategoryBudget = async (
     );
 };
 
-
 // Delete a category budget
-export const deleteCategoryBudget = async (
-    budgetId,
-    categoryId
-) => {
+export const deleteCategoryBudget = async (budgetId,categoryId) => {
     return apiRequest(
         `/budgets/${budgetId}/categories/${categoryId}`,
         {
@@ -193,7 +161,6 @@ export const deleteCategoryBudget = async (
         }
     );
 };
-
 
 // ========================================
 // RECURRING APIs
@@ -218,10 +185,7 @@ export const createRecurring = async (recurringData) => {
 };
 
 // Update a recurring transaction
-export const updateRecurring = async (
-    recurringId,
-    recurringData
-) => {
+export const updateRecurring = async (recurringId,recurringData) => {
     return apiRequest(`/recurring/${recurringId}`, {
         method: "PUT",
         body: JSON.stringify(recurringData),
@@ -229,10 +193,7 @@ export const updateRecurring = async (
 };
 
 // Activate or deactivate a recurring transaction
-export const toggleRecurring = async (
-    recurringId,
-    isActive
-) => {
+export const toggleRecurring = async (recurringId,isActive) => {
     return apiRequest(`/recurring/${recurringId}/status`, {
         method: "PATCH",
         body: JSON.stringify({ isActive }),
@@ -242,7 +203,6 @@ export const toggleRecurring = async (
 // ========================================
 // SMART ANALYSIS API
 // ========================================
-
 export const getSmartAnalysis = async (startDate, endDate) => {
     const params = new URLSearchParams({
         startDate,
@@ -250,4 +210,16 @@ export const getSmartAnalysis = async (startDate, endDate) => {
     });
 
     return apiRequest(`/smart-analysis?${params.toString()}`);
+};
+
+// ========================================
+// WHAT-IF SIMULATOR API
+// ========================================
+
+// Run a financial simulation
+export const runSimulator = async (simulationData) => {
+    return apiRequest("/simulator", {
+        method: "POST",
+        body: JSON.stringify(simulationData),
+    });
 };

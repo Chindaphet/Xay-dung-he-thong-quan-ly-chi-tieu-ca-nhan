@@ -37,13 +37,8 @@ const getPeriodSummary = async (userId, startDate, endDate) => {
     return rows[0];
 };
 
-
 // Get expenses grouped by category
-const getExpenseByCategory = async (
-    userId,
-    startDate,
-    endDate
-) => {
+const getExpenseByCategory = async (userId,startDate,endDate) => {
     const query = `
         SELECT
             t.category_id,
@@ -77,13 +72,8 @@ const getExpenseByCategory = async (
     return rows;
 };
 
-
 // Get monthly income and expense trends
-const getMonthlyExpenseTrend = async (
-    userId,
-    startDate,
-    endDate
-) => {
+const getMonthlyExpenseTrend = async (userId,startDate,endDate) => {
     const query = `
         SELECT
             TO_CHAR(
@@ -116,7 +106,6 @@ const getMonthlyExpenseTrend = async (
     return rows;
 };
 
-
 // Get monthly budget
 const getMonthlyBudget = async (userId, budgetMonth) => {
     const query = `
@@ -138,7 +127,6 @@ const getMonthlyBudget = async (userId, budgetMonth) => {
 
     return rows[0] || null;
 };
-
 
 module.exports = {
     getPeriodSummary,

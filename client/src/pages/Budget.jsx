@@ -243,65 +243,61 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
         return;
     }
 
-    try {
-        setSavingCategoryBudget(true);
-        setCategoryBudgetError("");
+        try {
+            setSavingCategoryBudget(true);
+            setCategoryBudgetError("");
 
-        await createCategoryBudget(budget.budgetId, {
-            categoryId: selectedCategoryId,
-            amount,
-        });
+            await createCategoryBudget(budget.budgetId, {
+                categoryId: selectedCategoryId,
+                amount,
+            });
 
-        setIsAddingCategoryBudget(false);
-        setSelectedCategoryId("");
-        setCategoryBudgetAmount("");
-        setReloadKey((prev) => prev + 1);
-    } catch (err) {
-        setCategoryBudgetError(
-            err.message || t("budget.saveFailed")
-        );
-    } finally {
-        setSavingCategoryBudget(false);
-    }
-};
-const handleUpdateCategoryBudget = async (event, categoryId) => {
-    event.preventDefault();
+            setIsAddingCategoryBudget(false);
+            setSelectedCategoryId("");
+            setCategoryBudgetAmount("");
+            setReloadKey((prev) => prev + 1);
+        } catch (err) {
+            setCategoryBudgetError(
+                err.message || t("budget.saveFailed")
+            );
+        } finally {
+            setSavingCategoryBudget(false);
+        }
+    };
+    const handleUpdateCategoryBudget = async (event, categoryId) => {
+        event.preventDefault();
 
-    const amount = Number(editingCategoryBudgetAmount);
+        const amount = Number(editingCategoryBudgetAmount);
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-        setCategoryBudgetError(t("budget.amountRequired"));
-        return;
-    }
+        if (!Number.isFinite(amount) || amount <= 0) {
+            setCategoryBudgetError(t("budget.amountRequired"));
+            return;
+        }
 
-    try {
-        setUpdatingCategoryBudget(true);
-        setCategoryBudgetError("");
+        try {
+            setUpdatingCategoryBudget(true);
+            setCategoryBudgetError("");
 
-        await updateCategoryBudget(
-            budget.budgetId,
-            categoryId,
-            { amount }
-        );
+            await updateCategoryBudget(
+                budget.budgetId,
+                categoryId,
+                { amount }
+            );
 
-        setEditingCategoryBudgetId("");
-        setEditingCategoryBudgetAmount("");
-        setReloadKey((prev) => prev + 1);
-    } catch (err) {
-        setCategoryBudgetError(
-            err.message || t("budget.saveFailed")
-        );
-    } finally {
-        setUpdatingCategoryBudget(false);
-    }
-};
-const handleDeleteCategoryBudget = async (categoryId) => {
-    const confirmed = window.confirm(
-        t("budget.confirmDelete")
-    );
-
+            setEditingCategoryBudgetId("");
+            setEditingCategoryBudgetAmount("");
+            setReloadKey((prev) => prev + 1);
+        } catch (err) {
+            setCategoryBudgetError(
+                err.message || t("budget.saveFailed")
+            );
+        } finally {
+            setUpdatingCategoryBudget(false);
+        }
+    };
+    const handleDeleteCategoryBudget = async (categoryId) => {
+        const confirmed = window.confirm(t("budget.confirmDelete"));
     if (!confirmed) return;
-
     try {
         setDeletingCategoryBudgetId(categoryId);
         setCategoryBudgetError("");
@@ -319,7 +315,7 @@ const handleDeleteCategoryBudget = async (categoryId) => {
     } finally {
         setDeletingCategoryBudgetId("");
     }
-};
+    };
     const budget = budgetData?.budget;
     const categoryBudgets = budgetData?.categoryBudgets || [];
     const categorySummary = budgetData?.categoryBudgetSummary;
@@ -553,87 +549,87 @@ const handleDeleteCategoryBudget = async (categoryId) => {
                                     </span>
                                 </div>
                                 {isAddingCategoryBudget && (
-    <form
-        ref={categoryAddFormRef}
-        className="budget-category-form"
-        onSubmit={handleCreateCategoryBudget}
-    >
-        <div className="budget-form-group">
-            <label htmlFor="category-budget-category">
-                {t("budget.selectCategory")}
-            </label>
+                                <form
+                                    ref={categoryAddFormRef}
+                                    className="budget-category-form"
+                                    onSubmit={handleCreateCategoryBudget}
+                                >
+                                    <div className="budget-form-group">
+                                        <label htmlFor="category-budget-category">
+                                            {t("budget.selectCategory")}
+                                        </label>
 
-            <select
-                id="category-budget-category"
-                value={selectedCategoryId}
-                onChange={(event) => {
-                    setSelectedCategoryId(event.target.value);
-                    setCategoryBudgetError("");
-                }}
-                required
-            >
-                <option value="">
-                    {t("budget.selectCategory")}
-                </option>
+                                        <select
+                                            id="category-budget-category"
+                                            value={selectedCategoryId}
+                                            onChange={(event) => {
+                                                setSelectedCategoryId(event.target.value);
+                                                setCategoryBudgetError("");
+                                            }}
+                                            required
+                                        >
+                                            <option value="">
+                                                {t("budget.selectCategory")}
+                                            </option>
 
-                {categories.map((category) => (
-                    <option
-                        key={category.category_id}
-                        value={category.category_id}
-                    >
-                        {category.name}
-                    </option>
-                ))}
-            </select>
-        </div>
+                                            {categories.map((category) => (
+                                                <option
+                                                    key={category.category_id}
+                                                    value={category.category_id}
+                                                >
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-        <div className="budget-form-group">
-            <label htmlFor="category-budget-amount">
-                {t("budget.allocatedAmount")}
-            </label>
+                                    <div className="budget-form-group">
+                                        <label htmlFor="category-budget-amount">
+                                            {t("budget.allocatedAmount")}
+                                        </label>
 
-            <input
-                id="category-budget-amount"
-                type="number"
-                min="1"
-                step="1"
-                value={categoryBudgetAmount}
-                onChange={(event) => {
-                    setCategoryBudgetAmount(event.target.value);
-                    setCategoryBudgetError("");
-                }}
-                placeholder={t("budget.enterAllocatedAmount")}
-                required
-            />
-        </div>
+                                        <input
+                                            id="category-budget-amount"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            value={categoryBudgetAmount}
+                                            onChange={(event) => {
+                                                setCategoryBudgetAmount(event.target.value);
+                                                setCategoryBudgetError("");
+                                            }}
+                                            placeholder={t("budget.enterAllocatedAmount")}
+                                            required
+                                        />
+                                    </div>
 
-        {categoryBudgetError && (
-            <p className="budget-form-error">
-                {categoryBudgetError}
-            </p>
-        )}
+                                    {categoryBudgetError && (
+                                        <p className="budget-form-error">
+                                            {categoryBudgetError}
+                                        </p>
+                                    )}
 
-        <div className="budget-edit-actions">
-            <button type="submit" disabled={savingCategoryBudget}>
-                {savingCategoryBudget
-                    ? t("budget.loading")
-                    : t("budget.saveBudget")}
-            </button>
+                                    <div className="budget-edit-actions">
+                                        <button type="submit" disabled={savingCategoryBudget}>
+                                            {savingCategoryBudget
+                                                ? t("budget.loading")
+                                                : t("budget.saveBudget")}
+                                        </button>
 
-            <button
-                type="button"
-                onClick={() => {
-                    setIsAddingCategoryBudget(false);
-                    setSelectedCategoryId("");
-                    setCategoryBudgetAmount("");
-                    setCategoryBudgetError("");
-                }}
-            >
-                Cancel
-            </button>
-        </div>
-    </form>
-)}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsAddingCategoryBudget(false);
+                                                setSelectedCategoryId("");
+                                                setCategoryBudgetAmount("");
+                                                setCategoryBudgetError("");
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
 
                                 {categoryBudgets.length === 0 ? (
                                     <div className="budget-empty-category">

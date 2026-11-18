@@ -44,11 +44,7 @@ const formatPercentage = (value) => {
     return `${Number(value).toFixed(2)}%`;
 };
 
-function SmartAnalysis({
-    user,
-    isSidebarOpen,
-    onToggleSidebar,
-}) {
+function SmartAnalysis({user,isSidebarOpen,onToggleSidebar,}) {
     const { t } = useLanguage();
 
     const [startDate, setStartDate] = useState(getMonthStart);
@@ -58,21 +54,12 @@ function SmartAnalysis({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retryCount, setRetryCount] = useState(0);
-
     // Fetch Smart Analysis data
     useEffect(() => {
         let cancelled = false;
-
-        const fetchAnalysis = async () => {
-            setLoading(true);
-            setError("");
-
+        const fetchAnalysis = async () => {setLoading(true);setError("");
             try {
-                const response = await getSmartAnalysis(
-                    startDate,
-                    endDate
-                );
-
+                const response = await getSmartAnalysis(startDate,endDate);
                 if (!cancelled) {
                     setAnalysisData(response.data);
                 }
@@ -91,7 +78,6 @@ function SmartAnalysis({
         };
 
         fetchAnalysis();
-
         return () => {
             cancelled = true;
         };

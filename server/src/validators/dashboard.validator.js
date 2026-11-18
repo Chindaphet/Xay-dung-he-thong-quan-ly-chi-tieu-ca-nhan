@@ -52,7 +52,8 @@ const validateDashboardDateRange = (data) => {
         isValidDate(startDate) &&
         isValidDate(endDate) &&
         endDate < startDate
-    ) {
+    )
+    {
         errors.push({
             field: "endDate",
             message: "End date must be on or after start date.",

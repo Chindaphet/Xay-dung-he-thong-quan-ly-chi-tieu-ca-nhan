@@ -1,6 +1,5 @@
 
 const pool = require("../config/database");
-
 // Get financial summary within a date range
 const getFinancialSummary = async (userId, startDate, endDate) => {
     const query = `
@@ -40,13 +39,8 @@ const getFinancialSummary = async (userId, startDate, endDate) => {
     return rows[0];
 };
 
-
 // Get income and expense trend by date
-const getIncomeExpenseTrend = async (
-    userId,
-    startDate,
-    endDate
-) => {
+const getIncomeExpenseTrend = async (userId,startDate,endDate) => {
     const query = `
         SELECT
             TO_CHAR(transaction_date, 'YYYY-MM-DD') AS transaction_date,
@@ -78,13 +72,8 @@ const getIncomeExpenseTrend = async (
     return rows;
 };
 
-
 // Get expenses grouped by category
-const getExpenseByCategory = async (
-    userId,
-    startDate,
-    endDate
-) => {
+const getExpenseByCategory = async (userId,startDate,endDate) => {
     const query = `
         SELECT
             t.category_id,
@@ -123,14 +112,8 @@ const getExpenseByCategory = async (
     return rows;
 };
 
-
 // Get recent transactions
-const getRecentTransactions = async (
-    userId,
-    startDate,
-    endDate,
-    limit = 10
-) => {
+const getRecentTransactions = async (userId,startDate,endDate,limit = 10) => {
     const query = `
         SELECT
             t.transactions_id,
@@ -171,7 +154,6 @@ const getRecentTransactions = async (
 
     return rows;
 };
-
 
 module.exports = {
     getFinancialSummary,

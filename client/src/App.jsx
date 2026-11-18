@@ -18,6 +18,7 @@ import PaymentMethods from "./pages/PaymentMethods";
 import MyProfile from "./pages/MyProfile";
 import Recurring from "./pages/Recurring";
 import SmartAnalysis from "./pages/SmartAnalysis";
+import WhatIfSimulator from "./pages/WhatIfSimulator";
 import Sidebar from "./components/layout/Sidebar";
 import "./App.css";
 
@@ -351,67 +352,64 @@ function App() {
         );
     }
 
-// Main application screen
-if (user) {
-    const pageProps = {
-        user,
-        onLogout: handleLogout,
-        onNavigate: handleNavigate,
-        isSidebarOpen,
-        onToggleSidebar: handleToggleSidebar,
-    };
+    // Main application screen
+    if (user) {
+        const pageProps = {
+            user,
+            onLogout: handleLogout,
+            onNavigate: handleNavigate,
+            isSidebarOpen,
+            onToggleSidebar: handleToggleSidebar,
+        };
 
-    let currentPage;
+        let currentPage;
 
-    switch (activePage) {
-        case "transactions":
-            currentPage = <Transactions {...pageProps} />;
-            break;
+        switch (activePage) {
+            case "transactions":
+                currentPage = <Transactions {...pageProps} />;
+                break;
+            case "categories":
+                currentPage = <Categories {...pageProps} />;
+                break;
+            case "payment-methods":
+                currentPage = <PaymentMethods {...pageProps} />;
+                break;
+            case "budget":
+                currentPage = <Budget {...pageProps} />;
+                break;
+            case "profile":
+                currentPage = <MyProfile {...pageProps} />;
+                break;
+            case "recurring":
+                currentPage = <Recurring {...pageProps} />;
+                break;
+            case "smart-analysis":
+                currentPage = <SmartAnalysis {...pageProps} />;
+                break;
+            case "simulator":
+                currentPage = <WhatIfSimulator {...pageProps} />;
+                break;
+            case "dashboard":
+            default:
+                currentPage = <Dashboard {...pageProps} />;
+                break;
+        }
 
-        case "categories":
-            currentPage = <Categories {...pageProps} />;
-            break;
+        return (
+            <>
+                <Sidebar
+                    user={user}
+                    activePage={activePage}
+                    onNavigate={handleNavigate}
+                    onLogout={handleLogout}
+                    isOpen={isSidebarOpen}
+                    onClose={handleCloseSidebar}
+                />
 
-        case "payment-methods":
-            currentPage = <PaymentMethods {...pageProps} />;
-            break;
-
-        case "budget":
-            currentPage = <Budget {...pageProps} />;
-            break;
-
-        case "profile":
-            currentPage = <MyProfile {...pageProps} />;
-            break;
-        case "recurring":
-            currentPage = <Recurring {...pageProps} />;
-            break;
-            
-        case "smart-analysis":
-            currentPage = <SmartAnalysis {...pageProps} />;
-            break;
-
-        case "dashboard":
-        default:
-            currentPage = <Dashboard {...pageProps} />;
-            break;
+                {currentPage}
+            </>
+        );
     }
-
-    return (
-        <>
-            <Sidebar
-                user={user}
-                activePage={activePage}
-                onNavigate={handleNavigate}
-                onLogout={handleLogout}
-                isOpen={isSidebarOpen}
-                onClose={handleCloseSidebar}
-            />
-
-            {currentPage}
-        </>
-    );
-}
 
     // Password reset success screen
     if (resetSuccess) {
@@ -446,61 +444,61 @@ if (user) {
                     <p>{t("auth.forgotPasswordSubtitle")}</p>
                 </div>
 
-<form onSubmit={handleForgotPassword}>
-    <div className="form-group">
-        <label htmlFor="forgotEmail">
-            {t("auth.email")}
-        </label>
+            <form onSubmit={handleForgotPassword}>
+                <div className="form-group">
+                    <label htmlFor="forgotEmail">
+                        {t("auth.email")}
+                    </label>
 
-        <input
-            id="forgotEmail"
-            type="email"
-            value={forgotEmail}
-            onChange={(event) => {
-                setForgotEmail(event.target.value);
-                setForgotMessage("");
-                setForgotError("");
-            }}
-            placeholder={t("auth.forgotEmailPlaceholder")}
-            autoComplete="email"
-            required
-        />
-    </div>
+                    <input
+                        id="forgotEmail"
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(event) => {
+                            setForgotEmail(event.target.value);
+                            setForgotMessage("");
+                            setForgotError("");
+                        }}
+                        placeholder={t("auth.forgotEmailPlaceholder")}
+                        autoComplete="email"
+                        required
+                    />
+                </div>
 
-    {forgotMessage && (
-        <p className="login-success" role="status">
-            {forgotMessage}
-        </p>
-    )}
+                {forgotMessage && (
+                    <p className="login-success" role="status">
+                        {forgotMessage}
+                    </p>
+                )}
 
-    {forgotError && (
-        <p className="login-error" role="alert">
-            {forgotError}
-        </p>
-    )}
+                {forgotError && (
+                    <p className="login-error" role="alert">
+                        {forgotError}
+                    </p>
+                )}
 
-    <button type="submit" disabled={submitting}>
-        {submitting
-            ? t("auth.sending")
-            : t("auth.sendResetLink")}
-    </button>
-</form>
+                <button type="submit" disabled={submitting}>
+                    {submitting
+                        ? t("auth.sending")
+                        : t("auth.sendResetLink")}
+                </button>
+            </form>
 
-<button
-    type="button"
-    className="forgot-back-button"
-    onClick={() => {
-        setShowForgotPassword(false);
-        setForgotMessage("");
-        setForgotError("");
-    }}
->
-    {t("auth.backToSignIn")}
-</button>
+                <button
+                    type="button"
+                    className="forgot-back-button"
+                    onClick={() => {
+                        setShowForgotPassword(false);
+                        setForgotMessage("");
+                        setForgotError("");
+                    }}
+                >
+                    {t("auth.backToSignIn")}
+                </button>
 
-<p className="login-footer">
-    {t("auth.footer")}
-</p>
+                <p className="login-footer">
+                    {t("auth.footer")}
+                </p>
 
                     <button
                         type="button"

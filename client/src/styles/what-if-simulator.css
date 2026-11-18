@@ -1,0 +1,490 @@
+
+/* ========================================
+   WHAT-IF SIMULATOR
+======================================== */
+
+.what-if-simulator-content {
+    padding: 28px 32px;
+    max-width: 1500px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Page Heading */
+
+.simulator-page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.simulator-page-heading h2 {
+    color: var(--text-primary, #242038);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.simulator-page-heading p {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+    margin: 0;
+}
+
+.simulator-month-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.simulator-month-picker label {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.simulator-month-picker input {
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color, #e7e4ef);
+    border-radius: 9px;
+    background: var(--card-background, #fff);
+    color: var(--text-primary, #242038);
+    font: inherit;
+}
+
+/* Loading and Error */
+
+.simulator-message,
+.simulator-error {
+    padding: 45px 20px;
+    text-align: center;
+    background: var(--card-background, #fff);
+    border-radius: 14px;
+    color: var(--text-secondary, #777487);
+}
+
+.simulator-message .loading-spinner {
+    margin: 0 auto 14px;
+}
+
+.simulator-error {
+    color: #d64545;
+}
+
+.simulator-error button {
+    margin-top: 12px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #7652d5;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Main Sections */
+
+.simulator-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.simulator-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(35, 25, 70, 0.04);
+}
+
+.simulator-section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.simulator-section-heading h2 {
+    color: var(--text-primary, #242038);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.simulator-section-heading p {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Expense Reduction */
+
+.simulator-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.simulator-category-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 10px;
+}
+
+.simulator-category-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.simulator-category-info strong {
+    color: var(--text-primary, #242038);
+    font-size: 14px;
+}
+
+.simulator-category-info span {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+}
+
+.simulator-percentage-input {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 130px;
+}
+
+.simulator-percentage-input label {
+    color: var(--text-secondary, #777487);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.simulator-percentage-input input {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color, #e7e4ef);
+    border-radius: 8px;
+    background: var(--card-background, #fff);
+    color: var(--text-primary, #242038);
+    font: inherit;
+}
+
+/* Budget Adjustment and Savings */
+
+.simulator-budget-total,
+.simulator-budget-input,
+.simulator-savings-input {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.simulator-budget-total label,
+.simulator-budget-input label,
+.simulator-savings-input label {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.simulator-budget-total input,
+.simulator-budget-input input,
+.simulator-savings-input input {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid var(--border-color, #e7e4ef);
+    border-radius: 9px;
+    background: var(--card-background, #fff);
+    color: var(--text-primary, #242038);
+    font: inherit;
+}
+
+.simulator-budget-total span,
+.simulator-savings-input p {
+    color: var(--text-secondary, #777487);
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.simulator-budget-input {
+    margin-top: 10px;
+}
+
+.simulator-empty {
+    padding: 18px;
+    text-align: center;
+    color: var(--text-secondary, #777487);
+    background: #f8f6fc;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+/* Inputs Focus */
+
+.what-if-simulator-content input:focus {
+    outline: none;
+    border-color: #7652d5;
+    box-shadow: 0 0 0 3px rgba(118, 82, 213, 0.12);
+}
+
+/* Actions */
+
+.simulator-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.simulator-reset-button,
+.simulator-run-button {
+    min-height: 42px;
+    padding: 10px 22px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.simulator-reset-button {
+    border: 1px solid var(--border-color, #e7e4ef);
+    background: var(--card-background, #fff);
+    color: var(--text-primary, #242038);
+}
+
+.simulator-run-button {
+    border: none;
+    background: #7652d5;
+    color: #fff;
+}
+
+.simulator-run-button:hover {
+    background: #6542c0;
+}
+
+.simulator-reset-button:hover {
+    background: #f5f2fb;
+}
+
+.simulator-reset-button:disabled,
+.simulator-run-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Simulation Error */
+
+.simulator-simulation-error {
+    padding: 14px 16px;
+    border-radius: 9px;
+    background: #fff1f1;
+    color: #d64545;
+    font-size: 14px;
+}
+
+/* Results */
+
+.simulator-results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.simulator-results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.simulator-result-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 20px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 12px;
+}
+
+.simulator-result-card span {
+    color: var(--text-secondary, #777487);
+    font-size: 13px;
+}
+
+.simulator-result-card strong {
+    color: var(--text-primary, #242038);
+    font-size: clamp(17px, 2vw, 22px);
+    overflow-wrap: anywhere;
+}
+
+.simulator-result-card.income strong {
+    color: #16a36a;
+}
+
+.simulator-result-card.expense strong {
+    color: #e05252;
+}
+
+.simulator-result-card.balance strong {
+    color: #7652d5;
+}
+
+/* Comparison Panels */
+
+.simulator-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px;
+    background: var(--card-background, #fff);
+    border: 1px solid var(--border-color, #eeeaf5);
+    border-radius: 12px;
+}
+
+.simulator-comparison h3 {
+    color: var(--text-primary, #242038);
+    font-size: 16px;
+    margin: 0;
+}
+
+.simulator-comparison-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color, #eeeaf5);
+}
+
+.simulator-comparison-row:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.simulator-comparison-row span {
+    color: var(--text-secondary, #777487);
+    font-size: 14px;
+}
+
+.simulator-comparison-row strong {
+    color: var(--text-primary, #242038);
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+/* Savings Status and Budget Warning */
+
+.simulator-savings-status {
+    padding: 14px 16px;
+    border-radius: 9px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.simulator-savings-status.success {
+    background: #eaf8f0;
+    color: #168653;
+}
+
+.simulator-savings-status.warning {
+    background: #fff5e6;
+    color: #a96b13;
+}
+
+.simulator-budget-warning {
+    padding: 14px 16px;
+    border-radius: 9px;
+    background: #fff5e6;
+    color: #a96b13;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+    .what-if-simulator-content {
+        padding: 24px 20px;
+    }
+
+    .simulator-results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .what-if-simulator-content {
+        padding: 18px 14px;
+        gap: 18px;
+    }
+
+    .simulator-page-heading {
+        align-items: stretch;
+    }
+
+    .simulator-month-picker {
+        width: 100%;
+    }
+
+    .simulator-month-picker input {
+        width: 100%;
+    }
+
+    .simulator-section {
+        padding: 18px;
+    }
+
+    .simulator-category-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .simulator-percentage-input {
+        width: 100%;
+    }
+
+    .simulator-results-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .simulator-result-card {
+        padding: 18px;
+    }
+
+    .simulator-comparison {
+        padding: 18px;
+    }
+
+    .simulator-actions {
+        flex-direction: column-reverse;
+    }
+
+    .simulator-reset-button,
+    .simulator-run-button {
+        width: 100%;
+    }
+}

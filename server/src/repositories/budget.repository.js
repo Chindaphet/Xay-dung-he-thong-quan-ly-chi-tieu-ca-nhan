@@ -21,7 +21,6 @@ const findByUserIdAndMonth = async (userId, month) => {
         userId,
         month,
     ]);
-
     return rows[0] || null;
 };
 
@@ -50,11 +49,7 @@ const findByIdAndUserId = async (budgetId, userId) => {
 };
 
 // Create a monthly budget
-const createBudget = async ({
-    userId,
-    month,
-    totalAmount,
-}) => {
+const createBudget = async ({userId,month,totalAmount,}) => {
     const query = `
         INSERT INTO budgets (
             user_id,
@@ -85,11 +80,7 @@ const createBudget = async ({
 };
 
 // Update the overall monthly budget
-const updateBudget = async (
-    budgetId,
-    userId,
-    totalAmount
-) => {
+const updateBudget = async (budgetId,userId,totalAmount) => {
     const query = `
         UPDATE budgets
         SET
@@ -116,10 +107,7 @@ const updateBudget = async (
 };
 
 // Get overall spending for a budget month
-const getTotalSpent = async (
-    userId,
-    month
-) => {
+const getTotalSpent = async (userId,month) => {
     const query = `
         SELECT
             COALESCE(SUM(amount), 0) AS total_spent
@@ -133,21 +121,12 @@ const getTotalSpent = async (
           AND deleted_at IS NULL;
     `;
 
-    const { rows } = await pool.query(query, [
-        userId,
-        month,
-    ]);
-
+    const { rows } = await pool.query(query, [userId,month,]);
     return rows[0];
 };
 
-
 // Get category budgets and actual spending
-const getCategoryBudgets = async (
-    budgetId,
-    userId,
-    month
-) => {
+const getCategoryBudgets = async (budgetId,userId,month) => {
     const query = `
         SELECT
             bc.budget_category_id,
@@ -201,13 +180,8 @@ const getCategoryBudgets = async (
     return rows;
 };
 
-
 // Find a category budget by budget ID and category ID
-const findCategoryBudget = async (
-    budgetId,
-    userId,
-    categoryId
-) => {
+const findCategoryBudget = async (budgetId,userId,categoryId) => {
     const query = `
         SELECT
             budget_category_id,
@@ -231,12 +205,8 @@ const findCategoryBudget = async (
     return rows[0] || null;
 };
 
-
 // Find a category belonging to a user
-const findCategoryByIdAndUserId = async (
-    categoryId,
-    userId
-) => {
+const findCategoryByIdAndUserId = async (categoryId,userId) => {
     const query = `
         SELECT
             category_id,
@@ -258,14 +228,8 @@ const findCategoryByIdAndUserId = async (
     return rows[0] || null;
 };
 
-
 // Create a category budget
-const createCategoryBudget = async ({
-    budgetId,
-    userId,
-    categoryId,
-    amount,
-}) => {
+const createCategoryBudget = async ({budgetId,userId,categoryId,amount,}) => {
     const query = `
         INSERT INTO budget_categories (
             budget_id,
@@ -294,14 +258,8 @@ const createCategoryBudget = async ({
     return rows[0];
 };
 
-
 // Update a category budget
-const updateCategoryBudget = async (
-    budgetId,
-    userId,
-    categoryId,
-    amount
-) => {
+const updateCategoryBudget = async (budgetId,userId,categoryId,amount) => {
     const query = `
         UPDATE budget_categories
         SET
@@ -330,13 +288,8 @@ const updateCategoryBudget = async (
     return rows[0] || null;
 };
 
-
 // Delete a category budget
-const deleteCategoryBudget = async (
-    budgetId,
-    userId,
-    categoryId
-) => {
+const deleteCategoryBudget = async (budgetId,userId,categoryId) => {
     const query = `
         DELETE FROM budget_categories
         WHERE budget_id = $1
@@ -350,10 +303,8 @@ const deleteCategoryBudget = async (
         userId,
         categoryId,
     ]);
-
     return rows[0] || null;
 };
-
 
 module.exports = {
     findByUserIdAndMonth,

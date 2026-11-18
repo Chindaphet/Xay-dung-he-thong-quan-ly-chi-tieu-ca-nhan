@@ -21,9 +21,8 @@ const createError = (message, status = 400) => {
 const handleDatabaseError = (error) => {
     if (error.code === "23505") {
         throw createError("A budget or category budget already exists.",409);}
-
-    if (error.code === "23503") {throw createError("The referenced budget or category does not exist.",400);}
-
+    if (error.code === "23503") {
+        throw createError("The referenced budget or category does not exist.",400);}
     if (error.code === "23514") {
         throw createError(
             "Budget data violates a database constraint.",
@@ -123,24 +122,14 @@ const getBudgetOverview = async (userId, month) => {
 
     const totalAmount = Number(budget.total_amount);
     const spentAmount = Number(totalSpent.total_spent);
-
     const remainingAmount = totalAmount - spentAmount;
-
     const allocatedAmount = categoryBudgets.reduce(
-        (total, item) => total + Number(item.budget_amount),
-        0
-    );
-
-    const exceededAmount = Math.max(
-        allocatedAmount - totalAmount,
-        0
-    );
-
+        (total, item) => total + Number(item.budget_amount),0);
+    const exceededAmount = Math.max( allocatedAmount - totalAmount,0);
     const formattedCategoryBudgets = categoryBudgets.map(
         (item) => {
             const categoryBudget = Number(item.budget_amount);
             const categorySpent = Number(item.total_spent);
-
             return {
                 budgetCategoryId: item.budget_category_id,
                 categoryId: item.category_id,
@@ -178,7 +167,6 @@ const getBudgetOverview = async (userId, month) => {
     };
 };
 
-
 // Create a monthly budget
 const createBudget = async (userId, data) => {
     const validation = validateBudget(data);
@@ -189,7 +177,6 @@ const createBudget = async (userId, data) => {
     );
 
     const budgetMonth = `${data.month}-01`;
-
     try {
         const existingBudget =
             await budgetRepository.findByUserIdAndMonth(
@@ -218,22 +205,15 @@ const createBudget = async (userId, data) => {
     }
 };
 
-
 // Update the overall monthly budget
-const updateBudget = async (
-    budgetId,
-    userId,
-    data
-) => {
+const updateBudget = async (budgetId,userId,data) => {
     const validation = validateBudgetUpdate(data);
-
     checkValidation(
         validation,
         "Budget update validation failed."
     );
 
     await getExistingBudget(budgetId, userId);
-
     try {
         return await budgetRepository.updateBudget(
             budgetId,
@@ -245,21 +225,15 @@ const updateBudget = async (
     }
 };
 
-
 // Validate category for a new category budget
-const validateNewCategory = async (
-    categoryId,
-    userId
-) => {
+const validateNewCategory = async (categoryId,userId) => {
     const category = await budgetRepository.findCategoryByIdAndUserId(
         categoryId,
         userId
     );
 
     if (!category) {
-        throw createError("Category not found.", 404);
-    }
-
+        throw createError("Category not found.", 404);}
     if (category.type !== "expense") {
         throw createError(
             "Only expense categories can have a budget.",
@@ -279,25 +253,15 @@ const validateNewCategory = async (
 
 
 // Add a category budget
-const createCategoryBudget = async (
-    budgetId,
-    userId,
-    data
-) => {
+const createCategoryBudget = async (budgetId,userId,data) => {
     const validation = validateCategoryBudget(data);
-
     checkValidation(
         validation,
         "Category budget validation failed."
     );
 
     await getExistingBudget(budgetId, userId);
-
-    await validateNewCategory(
-        data.categoryId,
-        userId
-    );
-
+    await validateNewCategory(data.categoryId,userId);
     try {
         return await budgetRepository.createCategoryBudget({
             budgetId,
@@ -310,32 +274,22 @@ const createCategoryBudget = async (
     }
 };
 
-
 // Update a category budget
-const updateCategoryBudget = async (
-    budgetId,
-    categoryId,
-    userId,
-    data
-) => {
+const updateCategoryBudget = async (budgetId,categoryId,userId,data) => {
     const validation = validateCategoryBudgetUpdate(data);
-
     checkValidation(
         validation,
         "Category budget update validation failed."
     );
 
     validateCategoryId(categoryId);
-
     await getExistingBudget(budgetId, userId);
-
     const existingCategoryBudget =
         await budgetRepository.findCategoryBudget(
             budgetId,
             userId,
             categoryId
         );
-
     if (!existingCategoryBudget) {
         throw createError(
             "Category budget not found.",
@@ -355,18 +309,11 @@ const updateCategoryBudget = async (
     }
 };
 
-
 // Delete a category budget
-const deleteCategoryBudget = async (
-    budgetId,
-    categoryId,
-    userId
-) => {
+const deleteCategoryBudget = async (budgetId,categoryId,userId) => {
     validateId(budgetId);
     validateCategoryId(categoryId);
-
     await getExistingBudget(budgetId, userId);
-
     const deleted =
         await budgetRepository.deleteCategoryBudget(
             budgetId,
@@ -383,7 +330,6 @@ const deleteCategoryBudget = async (
 
     return deleted;
 };
-
 
 module.exports = {
     getBudgetOverview,

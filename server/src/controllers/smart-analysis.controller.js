@@ -1,14 +1,9 @@
 
-const smartAnalysisService = require(
-    "../services/smart-analysis.service"
-);
-
-
+const smartAnalysisService = require("../services/smart-analysis.service");
 // Get smart analysis overview
 const getSmartAnalysis = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.query;
-
         const analysis = await smartAnalysisService.getSmartAnalysis(
             req.user.user_id,
             startDate,
@@ -23,7 +18,6 @@ const getSmartAnalysis = async (req, res, next) => {
         next(error);
     }
 };
-
 
 module.exports = {
     getSmartAnalysis,

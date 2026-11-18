@@ -3,7 +3,6 @@ const express = require("express");
 
 const budgetController = require("../controllers/budget.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
-
 const router = express.Router();
 
 // All budget routes require authentication

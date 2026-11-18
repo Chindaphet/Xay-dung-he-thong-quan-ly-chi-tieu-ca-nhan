@@ -11,7 +11,8 @@ const validateBudgetMonth = (month) => {
     if (
         typeof month !== "string" ||
         !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)
-    ) {
+    )
+    {
         return false;
     }
 
@@ -25,7 +26,8 @@ const validateAmount = (amount) => {
         amount === null ||
         amount === "" ||
         !/^\d+(\.\d{1,2})?$/.test(String(amount))
-    ) {
+    )
+    {
         return false;
     }
 
@@ -36,7 +38,6 @@ const validateAmount = (amount) => {
 // Validate budget creation data
 const validateBudget = (data) => {
     const errors = [];
-
     if (!data || typeof data !== "object" || Array.isArray(data)) {
         return {
             isValid: false,
@@ -45,7 +46,6 @@ const validateBudget = (data) => {
     }
 
     const { month, totalAmount } = data;
-
     if (!validateBudgetMonth(month)) {
         errors.push(
             "Budget month must use YYYY-MM format."
@@ -59,7 +59,6 @@ const validateBudget = (data) => {
     }
 
     const allowedFields = ["month", "totalAmount"];
-
     for (const key of Object.keys(data)) {
         if (!allowedFields.includes(key)) {
             errors.push(`Field '${key}' is not allowed.`);
@@ -75,7 +74,6 @@ const validateBudget = (data) => {
 // Validate budget update data
 const validateBudgetUpdate = (data) => {
     const errors = [];
-
     if (!data || typeof data !== "object" || Array.isArray(data)) {
         return {
             isValid: false,
@@ -85,10 +83,8 @@ const validateBudgetUpdate = (data) => {
 
     const allowedFields = ["totalAmount"];
     const keys = Object.keys(data);
-
     if (keys.length === 0) {
-        errors.push("At least one field must be provided.");
-    }
+        errors.push("At least one field must be provided.");}
 
     for (const key of keys) {
         if (!allowedFields.includes(key)) {
@@ -111,11 +107,9 @@ const validateBudgetUpdate = (data) => {
     };
 };
 
-
 // Validate category budget data
 const validateCategoryBudget = (data) => {
     const errors = [];
-
     if (!data || typeof data !== "object" || Array.isArray(data)) {
         return {
             isValid: false,
@@ -124,7 +118,6 @@ const validateCategoryBudget = (data) => {
     }
 
     const allowedFields = ["categoryId", "amount"];
-
     for (const key of Object.keys(data)) {
         if (!allowedFields.includes(key)) {
             errors.push(`Field '${key}' is not allowed.`);
@@ -147,11 +140,9 @@ const validateCategoryBudget = (data) => {
     };
 };
 
-
 // Validate category budget update data
 const validateCategoryBudgetUpdate = (data) => {
     const errors = [];
-
     if (!data || typeof data !== "object" || Array.isArray(data)) {
         return {
             isValid: false,
@@ -160,7 +151,6 @@ const validateCategoryBudgetUpdate = (data) => {
     }
 
     const keys = Object.keys(data);
-
     if (keys.length !== 1 || !keys.includes("amount")) {
         errors.push(
             "Only the amount field can be updated."
@@ -182,18 +172,15 @@ const validateCategoryBudgetUpdate = (data) => {
     };
 };
 
-
 // Validate UUID
 const validateBudgetId = (budgetId) => {
     return isUUID(budgetId);
 };
 
-
 // Validate category ID
 const validateBudgetCategoryId = (categoryId) => {
     return isUUID(categoryId);
 };
-
 
 module.exports = {
     validateBudgetMonth,
