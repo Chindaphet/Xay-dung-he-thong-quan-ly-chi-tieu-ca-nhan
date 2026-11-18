@@ -1,9 +1,6 @@
 
-
 const pool = require("../config/database");
-
-
-// Create a new transaction
+// Create a new transaction and enqueue its gamification event
 const createTransaction = async ({
     userId,
     categoryId,
@@ -13,49 +10,91 @@ const createTransaction = async ({
     description = null,
     transactionDate = null,
 }) => {
-    const query = `
-        INSERT INTO transactions (
-            user_id,
-            category_id,
-            payment_method_id,
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        const transactionQuery = `
+            INSERT INTO transactions (
+                user_id,
+                category_id,
+                payment_method_id,
+                type,
+                amount,
+                description,
+                transaction_date
+            )
+            VALUES (
+                $1, $2, $3, $4, $5, $6,
+                COALESCE($7::DATE, CURRENT_DATE)
+            )
+            RETURNING
+                transactions_id,
+                user_id,
+                category_id,
+                payment_method_id,
+                type,
+                amount,
+                description,
+                transaction_date,
+                recurring_id,
+                recurring_occurrence_date,
+                created_at,
+                updated_at;
+        `;
+
+        const values = [
+            userId,
+            categoryId,
+            paymentMethodId,
             type,
             amount,
             description,
-            transaction_date
-        )
-        VALUES (
-            $1, $2, $3, $4, $5, $6,
-            COALESCE($7::DATE, CURRENT_DATE)
-        )
-        RETURNING
-            transactions_id,
-            user_id,
-            category_id,
-            payment_method_id,
-            type,
-            amount,
-            description,
-            transaction_date,
-            recurring_id,
-            recurring_occurrence_date,
-            created_at,
-            updated_at;
-    `;
+            transactionDate,
+        ];
 
-    const values = [
-        userId,
-        categoryId,
-        paymentMethodId,
-        type,
-        amount,
-        description,
-        transactionDate,
-    ];
+        const { rows } = await client.query(transactionQuery,values);
+        const transaction = rows[0];
+        const eventQuery = `
+            INSERT INTO gamification_events (
+                user_id,
+                event_type,
+                reference_id,
+                event_key,
+                payload
+            )
+            VALUES (
+                $1,
+                'transaction_created',
+                $2,
+                $3,
+                $4::jsonb
+            )
+            ON CONFLICT (event_key) DO NOTHING;
+        `;
 
-    const { rows } = await pool.query(query, values);
-    return rows[0];
+        const eventKey = `transaction:${transaction.transactions_id}`;
+        const eventPayload = JSON.stringify({
+            transactions_id: transaction.transactions_id,
+            created_at: transaction.created_at,
+            type: transaction.type,
+        });
+
+        await client.query(eventQuery, [
+            userId,
+            transaction.transactions_id,
+            eventKey,
+            eventPayload,
+        ]);
+
+        await client.query("COMMIT");
+        return transaction;
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
 };
-
 
 // Find all transactions belonging to a user
 const findAllByUserId = async (userId) => {
@@ -110,10 +149,8 @@ const findByIdAndUserId = async (transactionsId, userId) => {
         transactionsId,
         userId,
     ]);
-
     return rows[0] || null;
 };
-
 
 // Update an existing transaction
 const updateTransaction = async (
@@ -172,7 +209,6 @@ const updateTransaction = async (
     return rows[0] || null;
 };
 
-
 // Soft delete a transaction
 const softDeleteTransaction = async (transactionsId, userId) => {
     const query = `
@@ -187,11 +223,7 @@ const softDeleteTransaction = async (transactionsId, userId) => {
         RETURNING transactions_id;
     `;
 
-    const { rows } = await pool.query(query, [
-        transactionsId,
-        userId,
-    ]);
-
+    const { rows } = await pool.query(query, [transactionsId,userId,]);
     return rows[0] || null;
 };
 

@@ -9,6 +9,7 @@ dotenv.config({
 
 const app = require("./app");
 const { startRecurringJob } = require("./jobs/recurring.job");
+const { startGamificationWorker } = require("./workers/gamification.worker");
 
 // Server configuration
 const PORT = Number(process.env.PORT) || 5000;
@@ -24,6 +25,9 @@ const server = app.listen(PORT, HOST, () => {
 });
 // Start recurring transaction scheduler
 const recurringJob = startRecurringJob();
+
+// Start gamification event worker
+const gamificationWorker = startGamificationWorker();
 // Handle server errors
 server.on("error", (error) => {
     if (error.code === "EADDRINUSE") {
@@ -38,7 +42,10 @@ server.on("error", (error) => {
 // Graceful shutdown
 const shutdown = (signal) => {
     console.log(`\n${signal} received. Shutting down server...`);
+
     recurringJob.stop();
+    clearInterval(gamificationWorker);
+
     server.close(() => {
         console.log("Server closed successfully.");
         process.exit(0);
