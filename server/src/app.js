@@ -14,6 +14,7 @@ const recurringRoutes = require("./routes/recurring.routes");
 const smartAnalysisRoutes = require("./routes/smart-analysis.routes");
 const gamificationRoutes = require("./routes/gamification.routes");
 const simulatorRoutes = require("./routes/simulator.routes");
+const settingsRoutes = require("./routes/settings.routes");
 
 // Middleware
 const errorMiddleware = require("./middlewares/error.middleware");
@@ -55,6 +56,7 @@ app.use("/api/recurring", recurringRoutes);
 app.use("/api/smart-analysis", smartAnalysisRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/simulator", simulatorRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // 404 Handler
 app.use((req, res) => {

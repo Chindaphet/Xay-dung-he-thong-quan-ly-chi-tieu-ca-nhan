@@ -34,7 +34,7 @@ const REFRESH_TOKEN_EXPIRES_IN_DAYS = 7;
 const ACCESS_TOKEN_EXPIRES_IN_SECONDS = 900;
 
 // Password reset token lifetime: 30 minutes
-const PASSWORD_RESET_EXPIRES_IN_MINUTES = 30;
+const PASSWORD_RESET_EXPIRES_IN_MINUTES = 10;
 
 // Generic response to prevent account enumeration
 const PASSWORD_RESET_MESSAGE =

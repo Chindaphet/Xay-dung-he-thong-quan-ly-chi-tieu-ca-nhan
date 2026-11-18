@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-
 import LanguageContext from "./LanguageContext";
-
 import en from "../locales/en/translation";
 import vi from "../locales/vi/translation";
 

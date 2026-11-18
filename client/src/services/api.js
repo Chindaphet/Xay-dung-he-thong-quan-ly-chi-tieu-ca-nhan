@@ -223,3 +223,20 @@ export const runSimulator = async (simulationData) => {
         body: JSON.stringify(simulationData),
     });
 };
+
+// ========================================
+// SETTINGS API
+// ========================================
+
+// Get user settings
+export const getSettings = async () => {
+    return apiRequest("/settings");
+};
+
+// Update user settings
+export const updateSettings = async (settingsData) => {
+    return apiRequest("/settings", {
+        method: "PUT",
+        body: JSON.stringify(settingsData),
+    });
+};

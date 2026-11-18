@@ -16,6 +16,7 @@ import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
 import PaymentMethods from "./pages/PaymentMethods";
 import MyProfile from "./pages/MyProfile";
+import Settings from "./pages/Settings";
 import Recurring from "./pages/Recurring";
 import SmartAnalysis from "./pages/SmartAnalysis";
 import WhatIfSimulator from "./pages/WhatIfSimulator";
@@ -380,6 +381,9 @@ function App() {
             case "profile":
                 currentPage = <MyProfile {...pageProps} />;
                 break;
+            case "settings":
+                currentPage = <Settings {...pageProps} />;
+                break;
             case "recurring":
                 currentPage = <Recurring {...pageProps} />;
                 break;
@@ -415,10 +419,12 @@ function App() {
     if (resetSuccess) {
         return (
             <main className="login-page">
-        <AuthLanguageSwitcher
-        language={language}
-        changeLanguage={changeLanguage}
-        t={t}/>
+                <AuthLanguageSwitcher
+                    language={language}
+                    changeLanguage={changeLanguage}
+                    t={t}
+                />
+
                 <section className="login-card register-card">
                     <div className="login-brand">
                         <h1>Devo</h1>
@@ -440,71 +446,23 @@ function App() {
                     </div>
 
                     <div className="login-heading">
-                    <h2>{t("auth.forgotPasswordTitle")}</h2>
-                    <p>{t("auth.forgotPasswordSubtitle")}</p>
-                </div>
-
-            <form onSubmit={handleForgotPassword}>
-                <div className="form-group">
-                    <label htmlFor="forgotEmail">
-                        {t("auth.email")}
-                    </label>
-
-                    <input
-                        id="forgotEmail"
-                        type="email"
-                        value={forgotEmail}
-                        onChange={(event) => {
-                            setForgotEmail(event.target.value);
-                            setForgotMessage("");
-                            setForgotError("");
-                        }}
-                        placeholder={t("auth.forgotEmailPlaceholder")}
-                        autoComplete="email"
-                        required
-                    />
-                </div>
-
-                {forgotMessage && (
-                    <p className="login-success" role="status">
-                        {forgotMessage}
-                    </p>
-                )}
-
-                {forgotError && (
-                    <p className="login-error" role="alert">
-                        {forgotError}
-                    </p>
-                )}
-
-                <button type="submit" disabled={submitting}>
-                    {submitting
-                        ? t("auth.sending")
-                        : t("auth.sendResetLink")}
-                </button>
-            </form>
-
-                <button
-                    type="button"
-                    className="forgot-back-button"
-                    onClick={() => {
-                        setShowForgotPassword(false);
-                        setForgotMessage("");
-                        setForgotError("");
-                    }}
-                >
-                    {t("auth.backToSignIn")}
-                </button>
-
-                <p className="login-footer">
-                    {t("auth.footer")}
-                </p>
+                        <h2>Password Reset Successful!</h2>
+                        <p>
+                            Your password has been changed successfully.
+                            You can now sign in with your new password.
+                        </p>
+                    </div>
 
                     <button
                         type="button"
                         className="reset-success-button"
                         onClick={() => {
-                            window.location.href = "/";
+                            setResetSuccess(false);
+                            setResetError("");
+                            setIdentifier("");
+                            setPassword("");
+                            setShowForgotPassword(false);
+                            setShowRegister(false);
                         }}
                     >
                         Back to Sign In
@@ -517,7 +475,6 @@ function App() {
             </main>
         );
     }
-
 
     // Reset password screen
     if (resetToken) {

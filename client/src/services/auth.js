@@ -18,7 +18,6 @@ export const login = async (identifier, password) => {
     );
 
     const result = await response.json();
-
     if (!response.ok) {
         const error = new Error(
             result.message || "Login failed."
@@ -26,12 +25,10 @@ export const login = async (identifier, password) => {
 
         error.status = response.status;
         error.details = result.details || null;
-
         throw error;
     }
 
     const { accessToken, refreshToken, user } = result.data;
-
     if (!accessToken || !refreshToken) {
         throw new Error("Invalid login response from server.");
     }
@@ -71,7 +68,6 @@ export const register = async (userData) => {
     return result.data.user;
 };
 
-
 // Get authenticated user
 export const getCurrentUser = async () => {
     const accessToken = localStorage.getItem("accessToken");
@@ -98,6 +94,7 @@ export const getCurrentUser = async () => {
 
     return result.data.user;
 };
+
 // Update authenticated user profile
 export const updateProfile = async (profileData) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -144,7 +141,6 @@ export const requestPasswordReset = async (email) => {
     return result;
 };
 
-
 // Reset password
 export const resetPassword = async (token, password) => {
     const response = await fetch(
@@ -176,7 +172,6 @@ export const resetPassword = async (token, password) => {
 
     return result;
 };
-
 
 // Logout
 export const logout = async () => {
