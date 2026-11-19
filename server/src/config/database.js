@@ -21,5 +21,16 @@ const pool = new Pool({
 pool.on("error", (error) => {
     console.error("Unexpected PostgreSQL error:", error.message);
 });
+// Close PostgreSQL connection pool gracefully.
+let closeDatabasePromise = null;
+
+const closeDatabase = () => {
+    if (!closeDatabasePromise) {
+        closeDatabasePromise = pool.end();
+    }
+
+    return closeDatabasePromise;
+};
 
 module.exports = pool;
+module.exports.closeDatabase = closeDatabase;

@@ -227,10 +227,36 @@ const softDeleteTransaction = async (transactionsId, userId) => {
     return rows[0] || null;
 };
 
+// Find an active transaction for gamification processing
+const findActiveTransactionByIdAndUserId = async (
+    transactionsId,
+    userId
+) => {
+    const query = `
+        SELECT
+            transactions_id,
+            user_id,
+            type,
+            created_at
+        FROM transactions
+        WHERE transactions_id = $1
+          AND user_id = $2
+          AND deleted_at IS NULL
+        LIMIT 1;
+    `;
+
+    const { rows } = await pool.query(query, [
+        transactionsId,
+        userId,
+    ]);
+
+    return rows[0] || null;
+};
 module.exports = {
     createTransaction,
     findAllByUserId,
     findByIdAndUserId,
     updateTransaction,
     softDeleteTransaction,
+    findActiveTransactionByIdAndUserId,
 };

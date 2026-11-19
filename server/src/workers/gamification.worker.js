@@ -1,16 +1,20 @@
 
 const gamificationRepository = require("../repositories/gamification.repository");
 const gamificationService = require("../services/gamification.service");
+const transactionRepository = require("../repositories/transaction.repository");
 
 const BATCH_SIZE = 10;
 const POLL_INTERVAL_MS = 5000;
 const STALE_EVENT_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
+const SHUTDOWN_TIMEOUT_MS = 30 * 1000;
 
 // Convert transaction creation time to a date in Thailand timezone.
 const getThailandActivityDate = (createdAt) => {
     const date = new Date(createdAt);
-    if (Number.isNaN(date.getTime())) {throw new Error("Invalid transaction creation date.");}
+    if (Number.isNaN(date.getTime())) {throw new Error(
+        "Invalid transaction creation date.");
+    }
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Bangkok",
         year: "numeric",
@@ -29,11 +33,31 @@ const processGamificationEvent = async (event) => {
     }
 
     const transactionId = event.reference_id;
-    const payload = event.payload || {};
 
-    if (!transactionId) {throw new Error("Transaction reference ID is missing.");}
-    if (!payload.created_at) {throw new Error("Transaction creation timestamp is missing.");}
-    const activityDate = getThailandActivityDate(payload.created_at);
+    if (!transactionId) {
+        throw new Error("Transaction reference ID is missing.");
+    }
+
+    // Verify that the transaction exists, belongs to the event owner,
+    // and has not been deleted.
+    const transaction =
+        await transactionRepository.findActiveTransactionByIdAndUserId(
+            transactionId,
+            event.user_id
+        );
+
+    // Skip deleted or missing transactions without awarding rewards.
+    if (!transaction) {
+        console.warn(
+            `[Gamification Worker] Skipping event ${event.event_id}: transaction not found or already deleted.`
+        );
+        return;
+    }
+
+    // Use the actual creation timestamp from the database.
+    const activityDate = getThailandActivityDate(
+        transaction.created_at
+    );
 
     // 1. Award 10 points for creating a transaction.
     await gamificationService.awardPoints({
@@ -78,10 +102,21 @@ const processPendingGamificationEvents = async () => {
         for (const event of events) {
             try {
                 await processGamificationEvent(event);
-                await gamificationRepository.markGamificationEventProcessed(
-                    event.event_id,
-                );
+
+                const processedEvent =
+                    await gamificationRepository.markGamificationEventProcessed(
+                        event.event_id
+                    );
+
+                if (!processedEvent) {
+                    console.error(
+                        `[Gamification Worker] Could not mark event ${event.event_id} as processed: event status may have changed.`
+                    );
+                    continue;
+                }
+
                 processedCount += 1;
+
             } catch (error) {
                 console.error(
                     `[Gamification Worker] Event ${event.event_id} failed:`,
@@ -89,11 +124,19 @@ const processPendingGamificationEvents = async () => {
                 );
 
                 try {
-                    await gamificationRepository.markGamificationEventFailed(
-                        event.event_id,
-                        error.message,
-                        MAX_ATTEMPTS
-                    );
+                    const failedEvent =
+                        await gamificationRepository.markGamificationEventFailed(
+                            event.event_id,
+                            error.message,
+                            MAX_ATTEMPTS
+                        );
+
+                    if (!failedEvent) {
+                        console.error(
+                            `[Gamification Worker] Could not mark event ${event.event_id} as failed: event status may have changed.`
+                        );
+                    }
+
                 } catch (markError) {
                     console.error(
                         `[Gamification Worker] Could not update event ${event.event_id}:`,
@@ -111,7 +154,7 @@ const processPendingGamificationEvents = async () => {
     } catch (error) {
         console.error(
             "[Gamification Worker] Processing error:",
-            error.message
+            error.stack || error
         );
     } finally {
         isRunning = false;
@@ -119,14 +162,93 @@ const processPendingGamificationEvents = async () => {
 };
 
 // Start the worker.
-const startGamificationWorker = () => {
+const startGamificationWorker = ({
+    batchProcessor = processPendingGamificationEvents,
+    pollIntervalMs = POLL_INTERVAL_MS,
+} = {}) => {
     console.log("[Gamification Worker] Started.");
-    processPendingGamificationEvents();
-    const interval = setInterval(processPendingGamificationEvents,POLL_INTERVAL_MS);
-    return interval;
+
+    let isStopped = false;
+    let currentBatch = null;
+    let stopPromise = null;
+
+    const runBatch = () => {
+        if (isStopped || currentBatch) {
+            return currentBatch;
+        }
+
+        currentBatch = Promise.resolve()
+            .then(() => batchProcessor())
+            .catch((error) => {
+                console.error(
+                    "[Gamification Worker] Batch processing failed:",
+                    error.stack || error
+                );
+            })
+            .finally(() => {
+                currentBatch = null;
+            });
+
+        return currentBatch;
+    };
+
+    // Process pending events immediately.
+    runBatch();
+
+    // Continue polling at the configured interval.
+    const interval = setInterval(runBatch, pollIntervalMs);
+
+    // Wait for the currently active batch without a timeout.
+    const waitForCurrentBatch = async () => {
+        while (currentBatch) {
+            const batch = currentBatch;
+            await batch;
+        }
+    };
+
+    // Stop polling and wait for the active batch with a timeout.
+    const stop = () => {
+        if (stopPromise) {
+            return stopPromise;
+        }
+
+        isStopped = true;
+        clearInterval(interval);
+
+        stopPromise = (async () => {
+            let timeoutId;
+
+            try {
+                await Promise.race([
+                    waitForCurrentBatch(),
+                    new Promise((_, reject) => {
+                        timeoutId = setTimeout(() => {
+                            reject(
+                                new Error(
+                                    `[Gamification Worker] Shutdown timed out after ${SHUTDOWN_TIMEOUT_MS / 1000} seconds.`
+                                )
+                            );
+                        }, SHUTDOWN_TIMEOUT_MS);
+                    }),
+                ]);
+
+                console.log("[Gamification Worker] Stopped.");
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        })();
+
+        return stopPromise;
+    };
+
+    return {
+        stop,
+        waitForCurrentBatch,
+    };
 };
 
 module.exports = {
+    processGamificationEvent,
     processPendingGamificationEvents,
     startGamificationWorker,
 };

@@ -1,9 +1,10 @@
+
 const cron = require("node-cron");
 const recurringService = require("../services/recurring.service");
 
 const TIMEZONE = process.env.APP_TIMEZONE || "Asia/Ho_Chi_Minh";
 
-// Get current date in the configured timezone
+// Get current date in the configured timezone.
 const getCurrentDate = () => {
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: TIMEZONE,
@@ -19,7 +20,7 @@ const getCurrentDate = () => {
     return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 };
 
-// Process all recurring transactions that are due
+// Process all recurring transactions that are due.
 const runRecurringJob = async () => {
     try {
         const currentDate = getCurrentDate();
@@ -36,29 +37,68 @@ const runRecurringJob = async () => {
     } catch (error) {
         console.error(
             "[Recurring Job] Processing failed:",
-            error.message
+            error.stack || error
         );
     }
 };
 
-// Start the automatic scheduler
+// Start the automatic scheduler.
 const startRecurringJob = () => {
     console.log("[Recurring Job] Scheduler started.");
     console.log(`[Recurring Job] Timezone: ${TIMEZONE}`);
 
-    // Run once when the server starts
-    runRecurringJob();
+    let isStopped = false;
+    let currentJob = null;
+    let stopPromise = null;
 
-    // Run every day at 00:05
+    // Prevent overlapping jobs.
+    const executeJob = () => {
+        if (isStopped || currentJob) {
+            return currentJob;
+        }
+
+        currentJob = Promise.resolve()
+            .then(() => runRecurringJob())
+            .finally(() => {
+                currentJob = null;
+            });
+
+        return currentJob;
+    };
+
+    // Run once when the server starts.
+    executeJob();
+
+    // Run every day at 00:05.
     const task = cron.schedule(
         "5 0 * * *",
-        runRecurringJob,
+        executeJob,
         {
             timezone: TIMEZONE,
         }
     );
 
-    return task;
+    // Stop the scheduler and wait for the active job.
+    const stop = () => {
+        if (stopPromise) {
+            return stopPromise;
+        }
+
+        isStopped = true;
+        task.stop();
+
+        stopPromise = (async () => {
+            if (currentJob) {
+                await currentJob;
+            }
+
+            console.log("[Recurring Job] Scheduler stopped.");
+        })();
+
+        return stopPromise;
+    };
+
+    return { stop };
 };
 
 module.exports = {

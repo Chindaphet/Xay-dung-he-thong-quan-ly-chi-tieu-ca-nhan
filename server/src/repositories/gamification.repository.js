@@ -1,6 +1,5 @@
 
 const pool = require("../config/database");
-
 // Create gamification profile if it does not exist
 const createUserGamification = async (userId) => {
     const query = `
@@ -46,7 +45,6 @@ const findUserGamification = async (userId) => {
     `;
 
     const { rows } = await pool.query(query, [userId]);
-
     return rows[0] || null;
 };
 
@@ -59,11 +57,49 @@ const addPoints = async ({
     idempotencyKey,
     description = null,
 }) => {
+    if (
+        typeof userId !== "string" ||
+        userId.trim().length === 0
+    ) {
+        throw new Error("Invalid user ID.");
+    }
+    if (!Number.isSafeInteger(points) || points <= 0) {
+        throw new Error("Points must be a positive integer.");
+    }
+    if (
+        typeof eventType !== "string" ||
+        eventType.trim().length === 0 ||
+        eventType.length > 50
+    ) {
+        throw new Error("Invalid point event type.");
+    }
+    if (
+        typeof idempotencyKey !== "string" ||
+        idempotencyKey.trim().length === 0 ||
+        idempotencyKey.length > 150
+    ) {
+        throw new Error("Invalid idempotency key.");
+    }
+    if (
+        referenceId !== null &&
+        (
+            typeof referenceId !== "string" ||
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(referenceId)
+        )
+    ) {
+        throw new Error("Invalid reference ID.");
+    }
+    if (
+        description !== null &&
+        typeof description !== "string"
+    ) {
+        throw new Error("Description must be a string or null.");
+    }
     const client = await pool.connect();
-
+    let transactionStarted = false;
     try {
         await client.query("BEGIN");
-
+        transactionStarted = true;
         // Ensure the user has a gamification profile
         await client.query(
             `
@@ -90,7 +126,6 @@ const addPoints = async ({
             DO NOTHING
             RETURNING point_log_id;
         `;
-
         const logResult = await client.query(logQuery, [
             userId,
             points,
@@ -99,17 +134,15 @@ const addPoints = async ({
             idempotencyKey,
             description,
         ]);
-
         // Do not award points again for duplicate events
         if (logResult.rows.length === 0) {
             await client.query("ROLLBACK");
-
+            transactionStarted = false;
             return {
                 awarded: false,
                 message: "Points have already been awarded.",
             };
         }
-
         // Update total points and level atomically
         const updateQuery = `
             UPDATE user_gamification
@@ -128,14 +161,12 @@ const addPoints = async ({
                 total_points,
                 current_level;
         `;
-
         const updateResult = await client.query(updateQuery, [
             points,
             userId,
         ]);
-
         await client.query("COMMIT");
-
+        transactionStarted = false;
         return {
             awarded: true,
             points,
@@ -143,7 +174,13 @@ const addPoints = async ({
             pointLogId: logResult.rows[0].point_log_id,
         };
     } catch (error) {
-        await client.query("ROLLBACK");
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                 error.rollbackError = rollbackError;
+            }
+        }
         throw error;
     } finally {
         client.release();
@@ -153,7 +190,6 @@ const addPoints = async ({
  // Find and lock pending gamification events
 const findPendingGamificationEvents = async (limit = 10) => {
     const client = await pool.connect();
-
     try {
         await client.query("BEGIN");
         const query = `
@@ -699,6 +735,10 @@ const updateChallengeProgress = async (
           AND uc.status = 'in_progress'
           AND c.is_active = TRUE
           AND (
+                c.start_date IS NULL
+                OR c.start_date <= CURRENT_DATE
+          )
+          AND (
               c.end_date IS NULL
               OR c.end_date >= CURRENT_DATE
           )
@@ -727,34 +767,26 @@ const getTransactionStats = async (userId) => {
     const query = `
         SELECT
             COUNT(*)::INTEGER AS transactions_count,
-
             COUNT(*) FILTER (
                 WHERE type = 'income'
             )::INTEGER AS income_count,
-
             COUNT(*) FILTER (
                 WHERE type = 'expense'
             )::INTEGER AS expense_count
-
         FROM transactions
         WHERE user_id = $1
           AND deleted_at IS NULL;
     `;
-
     const { rows } = await pool.query(query, [userId]);
-
     return rows[0];
 };
 // Unlock achievement and award its points atomically
 const unlockAchievementAndAwardPoints = async (
     userId,
-    achievementId
-) => {
+    achievementId) => {
     const client = await pool.connect();
-
     try {
         await client.query("BEGIN");
-
         const unlockQuery = `
             INSERT INTO user_achievements (
                 user_id,
@@ -805,7 +837,7 @@ const unlockAchievementAndAwardPoints = async (
             `,
             [userId]
         );
-            if (points > 0) {
+        if (points > 0) {
             const pointLogResult = await client.query(
                 `
                     INSERT INTO gamification_point_logs (
@@ -853,7 +885,6 @@ const unlockAchievementAndAwardPoints = async (
         }
 
         await client.query("COMMIT");
-
         return {
             ...unlockResult.rows[0],
             name: achievement.name,
@@ -869,10 +900,10 @@ const unlockAchievementAndAwardPoints = async (
 
 const updateStreakAndAwardBonus = async (userId, activityDate) => {
     const client = await pool.connect();
-
+    let transactionStarted = false;
     try {
         await client.query("BEGIN");
-
+        transactionStarted = true;
         // Validate activity date.
         const dateValidation = await client.query(
             `SELECT
@@ -1002,13 +1033,11 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
                      WHERE user_id = $1`,
                     [userId]
                 );
-
                 bonusAwarded = true;
             }
         }
-
         await client.query("COMMIT");
-
+        transactionStarted = false;
         return {
             currentStreak,
             longestStreak,
@@ -1017,7 +1046,14 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
             bonusPoints: bonusAwarded ? 15 : 0,
         };
     } catch (error) {
-        await client.query("ROLLBACK");
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                error.rollbackError = rollbackError;
+            }
+        }
+
         throw error;
     } finally {
         client.release();
@@ -1029,8 +1065,11 @@ const processChallengeEvent = async (
     eventId,
     progressAmount = 1
 ) => {
-    const client = await pool.connect();
+    if (!Number.isSafeInteger(progressAmount) || progressAmount <= 0) {
+        throw new Error("Progress amount must be a positive integer.");
+    }
 
+    const client = await pool.connect();
     try {
         await client.query("BEGIN");
 
@@ -1049,7 +1088,10 @@ const processChallengeEvent = async (
             WHERE uc.user_id = $1
               AND uc.status = 'in_progress'
               AND c.is_active = TRUE
-              AND c.start_date <= CURRENT_DATE
+              AND (
+                    c.start_date IS NULL
+                    OR c.start_date <= CURRENT_DATE
+              )
               AND (
                   c.end_date IS NULL
                   OR c.end_date >= CURRENT_DATE
