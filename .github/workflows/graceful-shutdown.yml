@@ -1,0 +1,138 @@
+
+name: Graceful Shutdown Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "server/**"
+      - ".github/workflows/graceful-shutdown.yml"
+
+jobs:
+  graceful-shutdown:
+    name: Test SIGTERM on Ubuntu
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: personal_expense_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d personal_expense_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: personal_expense_test
+      DB_USER: postgres
+      DB_PASSWORD: test_password
+      NODE_ENV: test
+      HOST: 127.0.0.1
+      PORT: 6116
+      APP_TIMEZONE: Asia/Ho_Chi_Minh
+      GAMIFICATION_WORKER_ENABLED: "false"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+      
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Apply database migration
+        run: |
+          PGPASSWORD="$DB_PASSWORD" psql \
+            -h "$DB_HOST" \
+            -p "$DB_PORT" \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -v ON_ERROR_STOP=1 \
+            -f server/database/migrations/001_initial_schema.sql
+
+      - name: Test SIGTERM graceful shutdown
+        working-directory: server
+        run: |
+          set -Eeuo pipefail
+
+          LOG="$RUNNER_TEMP/server.log"
+
+          node src/server.js > "$LOG" 2>&1 &
+          SERVER_PID=$!
+
+          cleanup() {
+            if kill -0 "$SERVER_PID" 2>/dev/null; then
+              kill -TERM "$SERVER_PID" || true
+              wait "$SERVER_PID" || true
+            fi
+          }
+
+          trap cleanup EXIT
+
+          READY=false
+
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:6116/api/health; then
+              READY=true
+              echo
+              echo "Server health check passed."
+              break
+            fi
+
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+              echo "Server exited before becoming healthy."
+              cat "$LOG"
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          if [ "$READY" != "true" ]; then
+            echo "Server did not become healthy in time."
+            cat "$LOG"
+            exit 1
+          fi
+
+          kill -TERM "$SERVER_PID"
+
+          set +e
+          wait "$SERVER_PID"
+          SERVER_EXIT_CODE=$?
+          set -e
+
+          trap - EXIT
+
+          cat "$LOG"
+
+          if [ "$SERVER_EXIT_CODE" -ne 0 ]; then
+            echo "Expected exit code 0, got $SERVER_EXIT_CODE."
+            exit 1
+          fi
+
+          grep -Fq "[Server] HTTP server closed." "$LOG"
+          grep -Fq "[Recurring Job] Scheduler stopped." "$LOG"
+          grep -Fq "[Server] PostgreSQL connection pool closed." "$LOG"
+          grep -Fq "[Server] Graceful shutdown completed." "$LOG"
+
+          echo "SIGTERM graceful shutdown test passed."
