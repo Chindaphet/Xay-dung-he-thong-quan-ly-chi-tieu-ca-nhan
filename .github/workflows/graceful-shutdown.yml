@@ -38,7 +38,7 @@ jobs:
       HOST: 127.0.0.1
       PORT: 6116
       APP_TIMEZONE: Asia/Ho_Chi_Minh
-      GAMIFICATION_WORKER_ENABLED: "false"
+      GAMIFICATION_WORKER_ENABLED: "true"
 
     steps:
       - name: Checkout repository
@@ -69,6 +69,15 @@ jobs:
             -d "$DB_NAME" \
             -v ON_ERROR_STOP=1 \
             -f server/database/migrations/001_initial_schema.sql
+      - name: Apply Gamification Worker test fixture
+        run: |
+          PGPASSWORD="$DB_PASSWORD" psql \
+            -h "$DB_HOST" \
+            -p "$DB_PORT" \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -v ON_ERROR_STOP=1 \
+            -f server/database/test/gamification-worker-fixture.sql
 
       - name: Test SIGTERM graceful shutdown
         working-directory: server
@@ -134,5 +143,8 @@ jobs:
           grep -Fq "[Recurring Job] Scheduler stopped." "$LOG"
           grep -Fq "[Server] PostgreSQL connection pool closed." "$LOG"
           grep -Fq "[Server] Graceful shutdown completed." "$LOG"
+          grep -Fq "[Gamification Worker] Started." "$LOG"
+          grep -Fq "[Gamification Worker] Stopped." "$LOG"
+          ! grep -Fq "[Gamification Worker] Processing error:" "$LOG"
 
           echo "SIGTERM graceful shutdown test passed."
