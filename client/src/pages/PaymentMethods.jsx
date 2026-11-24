@@ -1,4 +1,9 @@
 
+import {
+    Plus,
+    Search,
+    Pencil,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import "../styles/payment-methods.css";
 import Header from "../components/layout/Header";
@@ -15,6 +20,8 @@ function PaymentMethods({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t } = useLanguage();
 
@@ -22,6 +29,9 @@ function PaymentMethods({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retryCount, setRetryCount] = useState(0);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("all");
 
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -142,8 +152,28 @@ function PaymentMethods({
     const handleRetry = () => {
         setRetryCount((count) => count + 1);
     };
+    const filteredPaymentMethods = paymentMethods.filter((method) => {
+    const matchesSearch = method.name
+        .toLowerCase()
+        .includes(searchTerm.trim().toLowerCase());
 
-    return (
+    const matchesType =
+        filterType === "all" || method.type === filterType;
+
+    const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && method.is_active) ||
+        (filterStatus === "inactive" && !method.is_active);
+
+    return matchesSearch && matchesType && matchesStatus;
+    });
+    const activePaymentMethods = paymentMethods.filter(
+        (method) => method.is_active
+    );
+    const inactivePaymentMethods = paymentMethods.filter(
+        (method) => !method.is_active
+    );
+        return (
         <div className="app-layout">
             <main className="main-content">
                 <Header
@@ -152,6 +182,8 @@ function PaymentMethods({
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <section className="page-content">
@@ -168,10 +200,26 @@ function PaymentMethods({
                                 setShowForm((previous) => !previous);
                             }}
                         >
-                            ＋ {t("paymentMethods.add")}
+                            <Plus size={18} strokeWidth={2} />
+                            {t("paymentMethods.add")}
                         </button>
                     </div>
+                    <div className="payment-method-summary">
+                        <div className="summary-card">
+                            <span>{t("paymentMethods.total")}</span>
+                            <strong>{paymentMethods.length}</strong>
+                        </div>
 
+                        <div className="summary-card">
+                            <span>{t("paymentMethods.active")}</span>
+                            <strong>{activePaymentMethods.length}</strong>
+                        </div>
+
+                        <div className="summary-card">
+                            <span>{t("paymentMethods.inactive")}</span>
+                            <strong>{inactivePaymentMethods.length}</strong>
+                        </div>
+                    </div>
                     {error && (
                         <div className="error-message">
                             <p>{error}</p>
@@ -250,46 +298,80 @@ function PaymentMethods({
         {t("paymentMethods.other")}
     </option>
 </select>
-
                             </div>
+<div className="payment-method-form-actions">
+    <button
+        type="submit"
+        className="payment-method-save-button"
+        disabled={submitting}
+    >
+        {submitting
+            ? t("paymentMethods.saving")
+            : editingId
+                ? t("paymentMethods.update")
+                : t("paymentMethods.save")}
+    </button>
 
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                            >
-                                {submitting
-                                    ? t("paymentMethods.saving")
-                                    : editingId
-                                        ? t("paymentMethods.update")
-                                        : t("paymentMethods.save")}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={resetForm}
-                                disabled={submitting}
-                            >
-                                {t("paymentMethods.cancel")}
-                            </button>
+    <button
+        type="button"
+        className="payment-method-cancel-button"
+        onClick={resetForm}
+        disabled={submitting}
+    >
+        {t("paymentMethods.cancel")}
+    </button>
+</div>
                         </form>
                     )}
+                    <div className="payment-method-filters">
+                    <div className="payment-method-search">
+                    <Search size={18} strokeWidth={2} />
+                    <input
+                        type="text"
+                        placeholder={t("paymentMethods.search")}
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                    />
+                </div>
 
+    <select
+        value={filterType}
+        onChange={(event) => setFilterType(event.target.value)}
+    >
+        <option value="all">{t("paymentMethods.allTypes")}</option>
+        <option value="cash">{t("paymentMethods.cash")}</option>
+        <option value="bank_transfer">{t("paymentMethods.bankTransfer")}</option>
+        <option value="credit_card">{t("paymentMethods.creditCard")}</option>
+        <option value="debit_card">{t("paymentMethods.debitCard")}</option>
+        <option value="e_wallet">{t("paymentMethods.eWallet")}</option>
+        <option value="other">{t("paymentMethods.other")}</option>
+    </select>
+
+    <select
+        value={filterStatus}
+        onChange={(event) => setFilterStatus(event.target.value)}
+    >
+        <option value="all">{t("paymentMethods.allStatuses")}</option>
+        <option value="active">{t("paymentMethods.active")}</option>
+        <option value="inactive">{t("paymentMethods.inactive")}</option>
+    </select>
+</div>
                     <div className="categories-list">
                         {loading ? (
                             <p>{t("paymentMethods.loading")}</p>
                         ) : (
                             <>
                                 <p className="categories-count">
-                                    {paymentMethods.length}{" "}
+                                    {filteredPaymentMethods.length}{" "}
                                     {t("paymentMethods.found")}
                                 </p>
 
                                 
 <div className="payment-method-grid">
-    {paymentMethods.length === 0 ? (
+    {filteredPaymentMethods.length === 0 ? (
         <p>{t("paymentMethods.empty")}</p>
     ) : (
-        paymentMethods.map((method) => (
+        filteredPaymentMethods.map((method) => (
             <div
                 className="payment-method-card"
                 key={method.payment_method_id}
@@ -314,23 +396,27 @@ function PaymentMethods({
 
                 {!method.is_default && (
                     <div className="payment-method-card-actions">
-                        <button
-                            type="button"
-                            onClick={() => handleEdit(method)}
-                            aria-label={t("paymentMethods.edit")}
-                        >
-                            ✏️
-                        </button>
+                    <button
+                        type="button"
+                        className="payment-method-edit-button"
+                        onClick={() => handleEdit(method)}
+                        aria-label={t("paymentMethods.edit")}
+                    >
+                        <Pencil size={16} strokeWidth={2} />
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => handleToggle(method)}
-                        >
-                            {method.is_active
-                                ? t("paymentMethods.deactivate")
-                                : t("paymentMethods.activate")}
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        className={`payment-method-toggle-button ${
+                            method.is_active ? "deactivate" : "activate"
+                        }`}
+                        onClick={() => handleToggle(method)}
+                    >
+                        {method.is_active
+                            ? t("paymentMethods.deactivate")
+                            : t("paymentMethods.activate")}
+                    </button>
+                </div>
                 )}
             </div>
         ))

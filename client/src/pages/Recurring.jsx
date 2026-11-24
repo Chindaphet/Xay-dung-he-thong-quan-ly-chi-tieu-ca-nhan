@@ -1,4 +1,9 @@
 
+import {
+    Repeat,
+    CircleCheck,
+    CirclePause,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "../styles/recurring.css";
 import Header from "../components/layout/Header";
@@ -37,6 +42,8 @@ function Recurring({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t } = useLanguage();
     const recurringFormRef = useRef(null);
@@ -60,7 +67,8 @@ function Recurring({
     // Filter states
     const [selectedType, setSelectedType] = useState("all");
     const [selectedStatus, setSelectedStatus] = useState("all");
-
+    const [selectedFrequency, setSelectedFrequency] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
     const initialFormData = {
         type: "expense",
         categoryId: "",
@@ -286,22 +294,46 @@ function Recurring({
             setUpdatingStatusId(null);
         }
     };
+    // Recurring summary
+    const totalRecurring = recurringTransactions.length;
 
+    const activeRecurring = recurringTransactions.filter(
+        (recurring) => recurring.is_active
+    ).length;
+
+    const inactiveRecurring = totalRecurring - activeRecurring;
     // Filter recurring transactions
-    const filteredRecurring = recurringTransactions.filter(
-        (recurring) => {
-            const matchesType =
-                selectedType === "all" ||
-                recurring.type === selectedType;
+const filteredRecurring = recurringTransactions.filter(
+    (recurring) => {
+        const matchesType =
+            selectedType === "all" ||
+            recurring.type === selectedType;
 
-            const matchesStatus =
-                selectedStatus === "all" ||
-                (selectedStatus === "active" && recurring.is_active) ||
-                (selectedStatus === "inactive" && !recurring.is_active);
+        const matchesStatus =
+            selectedStatus === "all" ||
+            (selectedStatus === "active" && recurring.is_active) ||
+            (selectedStatus === "inactive" && !recurring.is_active);
 
-            return matchesType && matchesStatus;
-        }
-    );
+        const matchesFrequency =
+            selectedFrequency === "all" ||
+            recurring.frequency === selectedFrequency;
+
+        const searchValue = searchTerm.trim().toLowerCase();
+
+        const matchesSearch =
+            !searchValue ||
+            (recurring.description || "")
+                .toLowerCase()
+                .includes(searchValue);
+
+        return (
+            matchesType &&
+            matchesStatus &&
+            matchesFrequency &&
+            matchesSearch
+        );
+    }
+);
 
     return (
         <div className="dashboard-layout">
@@ -312,6 +344,8 @@ function Recurring({
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <div className="dashboard-content">
@@ -351,7 +385,38 @@ function Recurring({
                                     + {t("recurring.addRecurring")}
                                 </button>
                             </div>
+                            {/* Recurring Summary */}
+<div className="recurring-summary">
+    <div className="recurring-summary-card">
+        <div className="recurring-summary-info">
+            <span>{t("recurring.totalRecurring")}</span>
+            <h3>{totalRecurring}</h3>
+        </div>
+        <div className="recurring-summary-icon total">
+            <Repeat size={22} strokeWidth={2} />
+        </div>
+    </div>
 
+    <div className="recurring-summary-card">
+        <div className="recurring-summary-info">
+            <span>{t("recurring.active")}</span>
+            <h3>{activeRecurring}</h3>
+        </div>
+        <div className="recurring-summary-icon active">
+            <CircleCheck size={22} strokeWidth={2} />
+        </div>
+    </div>
+
+    <div className="recurring-summary-card">
+        <div className="recurring-summary-info">
+            <span>{t("recurring.inactive")}</span>
+            <h3>{inactiveRecurring}</h3>
+        </div>
+        <div className="recurring-summary-icon inactive">
+            <CirclePause size={22} strokeWidth={2} />
+        </div>
+    </div>
+</div>
                             {/* Recurring Form */}
                             {showForm && (
                                 <div
@@ -621,42 +686,73 @@ function Recurring({
                                 </div>
                             )}
 
-                            {/* Filters */}
-                            <div className="recurring-filters">
-                                <select
-                                    value={selectedType}
-                                    onChange={(event) =>
-                                        setSelectedType(event.target.value)
-                                    }
-                                >
-                                    <option value="all">
-                                        {t("transactions.allTypes")}
-                                    </option>
-                                    <option value="income">
-                                        {t("recurring.income")}
-                                    </option>
-                                    <option value="expense">
-                                        {t("recurring.expense")}
-                                    </option>
-                                </select>
+                            {/* Search and Filters */}
+<div className="recurring-toolbar">
+    <div className="recurring-search">
+        <i className="fas fa-search"></i>
+        <input
+            type="text"
+            placeholder={t("recurring.searchPlaceholder")}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+        />
+        {searchTerm && (
+            <button
+                type="button"
+                className="recurring-search-clear"
+                onClick={() => setSearchTerm("")}
+                aria-label={t("recurring.clearSearch")}
+            >
+                <i className="fas fa-times"></i>
+            </button>
+        )}
+    </div>
 
-                                <select
-                                    value={selectedStatus}
-                                    onChange={(event) =>
-                                        setSelectedStatus(event.target.value)
-                                    }
-                                >
-                                    <option value="all">
-                                        {t("recurring.status")}
-                                    </option>
-                                    <option value="active">
-                                        {t("recurring.active")}
-                                    </option>
-                                    <option value="inactive">
-                                        {t("recurring.inactive")}
-                                    </option>
-                                </select>
-                            </div>
+    <div className="recurring-filters">
+        <select
+            value={selectedType}
+            onChange={(event) => setSelectedType(event.target.value)}
+        >
+            <option value="all">
+                {t("transactions.allTypes")}
+            </option>
+            <option value="income">
+                {t("recurring.income")}
+            </option>
+            <option value="expense">
+                {t("recurring.expense")}
+            </option>
+        </select>
+
+        <select
+            value={selectedStatus}
+            onChange={(event) => setSelectedStatus(event.target.value)}
+        >
+            <option value="all">
+                {t("recurring.status")}
+            </option>
+            <option value="active">
+                {t("recurring.active")}
+            </option>
+            <option value="inactive">
+                {t("recurring.inactive")}
+            </option>
+        </select>
+
+        <select
+            value={selectedFrequency}
+            onChange={(event) => setSelectedFrequency(event.target.value)}
+        >
+            <option value="all">
+                {t("recurring.allFrequencies")}
+            </option>
+            <option value="daily">{t("recurring.daily")}</option>
+            <option value="weekly">{t("recurring.weekly")}</option>
+            <option value="monthly">{t("recurring.monthly")}</option>
+            <option value="yearly">{t("recurring.yearly")}</option>
+        </select>
+    </div>
+</div>
 
                             {/* Recurring Table */}
                             <div className="recurring-table-container">

@@ -19,7 +19,7 @@ router.get("/:categoryId", categoryController.getCategoryById);
 
 // Update a category
 router.put("/:categoryId", categoryController.updateCategory);
-
+router.delete("/:categoryId", categoryController.deleteCategory);
 // Activate or deactivate a category
 router.patch("/:categoryId/status",categoryController.toggleCategory);
 

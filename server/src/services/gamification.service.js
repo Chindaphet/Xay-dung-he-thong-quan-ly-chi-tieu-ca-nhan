@@ -59,8 +59,13 @@ const awardPoints = async ({
     description = null, }) => {
     validateUserId(userId);
     if (!Number.isSafeInteger(points) || points <= 0) { throw createError("Points must be a positive integer."); }
-    if (typeof eventType !== "string" || eventType.trim().length === 0) { throw createError("Invalid point event type."); }
-    if (typeof idempotencyKey !== "string" || idempotencyKey.trim().length === 0) { throw createError("Idempotency key is required."); }
+    if (typeof eventType !== "string" ||
+        eventType.trim().length === 0 ||
+        eventType.length > 50) { throw createError("Invalid point event type."); }
+    if (
+        typeof idempotencyKey !== "string" ||
+        idempotencyKey.trim().length === 0 ||
+        idempotencyKey.length > 150) { throw createError("Invalid idempotency key."); }
     const result = await gamificationRepository.addPoints({
         userId,
         points,
@@ -73,14 +78,6 @@ const awardPoints = async ({
     return result;
 };
 
-const updateStreak = async (userId, activityDate) => {
-    validateUserId(userId);
-    // Validate activity date
-    if (typeof activityDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(activityDate)) {throw createError("Invalid activity date.");}
-    const date = new Date(`${activityDate}T00:00:00.000Z`);
-    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== activityDate) {throw createError("Invalid activity date."); }
-    return await gamificationRepository.updateUserStreak(userId,activityDate);
-};
 // Get current progress for an achievement requirement
 const getAchievementProgress = async (userId, requirementType) => {
     validateUserId(userId);
@@ -151,11 +148,11 @@ const checkAchievements = async (userId) => {
 
     return unlockedAchievements;
 };
+
 module.exports = {
     getUserGamification,
     getGamificationOverview,
     awardPoints,
-    updateStreak,
     getAchievementProgress,
     checkAchievements,
 };

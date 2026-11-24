@@ -82,12 +82,30 @@ const toggleCategory = async (req, res, next) => {
         next(error);
     }
 };
+// Delete a category
+const deleteCategory = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+        const { categoryId } = req.params;
 
+        await categoryService.deleteCategory(
+            categoryId,
+            userId
+        );
 
+        return res.status(200).json({
+            success: true,
+            message: "Category deleted successfully.",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
     updateCategory,
     toggleCategory,
+    deleteCategory,
 };

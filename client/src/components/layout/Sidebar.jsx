@@ -1,30 +1,44 @@
 
+import {
+    LayoutDashboard,
+    ArrowLeftRight,
+    Tags,
+    CreditCard,
+    Wallet,
+    Repeat,
+    ChartNoAxesCombined,
+    SlidersHorizontal,
+    UserRound,
+    Settings,
+    CircleHelp,
+    LogOut,
+} from "lucide-react";
 import useLanguage from "../../hooks/useLanguage";
 
 const menuGroups = [
     {
         title: "mainMenu",
         items: [
-            { id: "dashboard", label: "dashboard", icon: "◫" },
-            { id: "transactions", label: "transactions", icon: "↔" },
-            { id: "categories", label: "categories", icon: "▦" },
-            { id: "payment-methods", label: "paymentMethods", icon: "▣" },
+            { id: "dashboard", label: "dashboard", icon: LayoutDashboard },
+            { id: "transactions", label: "transactions", icon: ArrowLeftRight },
+            { id: "categories", label: "categories", icon: Tags },
+            { id: "payment-methods", label: "paymentMethods", icon: CreditCard },
         ],
     },
     {
         title: "financialTools",
         items: [
-            { id: "budget", label: "budget", icon: "◷" },
-            { id: "recurring", label: "recurring", icon: "⟳" },
-            { id: "smart-analysis", label: "smartAnalysis", icon: "⌁" },
-            { id: "simulator", label: "simulator", icon: "⌘" },
+            { id: "budget", label: "budget", icon: Wallet },
+            { id: "recurring", label: "recurring", icon: Repeat },
+            { id: "smart-analysis", label: "smartAnalysis", icon: ChartNoAxesCombined },
+            { id: "simulator", label: "simulator", icon: SlidersHorizontal },
         ],
     },
     {
         title: "preferences",
         items: [
-            { id: "profile", label: "profile", icon: "◎" },
-            { id: "settings", label: "settings", icon: "⚙" },
+            { id: "profile", label: "profile", icon: UserRound },
+            { id: "settings", label: "settings", icon: Settings },
         ],
     },
 ];
@@ -97,7 +111,7 @@ function Sidebar({
                                     tabIndex={isOpen ? 0 : -1}
                                 >
                                     <span className="sidebar-icon">
-                                        {item.icon}
+                                        <item.icon size={20} strokeWidth={1.8} aria-hidden="true" />
                                     </span>
 
                                     <span className="sidebar-link-label">
@@ -111,7 +125,9 @@ function Sidebar({
 
                 <div className="sidebar-bottom">
                     <div className="sidebar-help">
-                        <div className="help-icon">?</div>
+                        <div className="help-icon">
+                            <CircleHelp size={19} strokeWidth={1.8} aria-hidden="true" />
+                        </div>
 
                         <div className="sidebar-help-text">
                             <strong>{t("sidebar.needHelp")}</strong>
@@ -125,7 +141,9 @@ function Sidebar({
                         onClick={handleLogout}
                         tabIndex={isOpen ? 0 : -1}
                     >
-                        <span className="sidebar-icon">↪</span>
+                        <span className="sidebar-icon">
+                            <LogOut size={20} strokeWidth={1.8} aria-hidden="true" />
+                        </span>
                         <span>{t("sidebar.signOut")}</span>
                     </button>
                 </div>

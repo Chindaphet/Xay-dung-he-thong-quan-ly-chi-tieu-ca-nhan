@@ -1,0 +1,77 @@
+
+name: Gamification Worker Integration Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "server/src/**"
+      - "server/package.json"
+      - "server/package-lock.json"
+      - "server/tests/gamification-worker.integration.test.js"
+      - "server/database/test/gamification-worker-integration-fixture.sql"
+      - ".github/workflows/gamification-worker-integration.yml"
+
+jobs:
+  gamification-worker-integration:
+    name: Test Transaction to Gamification Worker
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: personal_expense_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d personal_expense_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: personal_expense_test
+      DB_USER: postgres
+      DB_PASSWORD: test_password
+      NODE_ENV: test
+      RUN_GAMIFICATION_INTEGRATION_TESTS: "1"
+      APP_TIMEZONE: Asia/Ho_Chi_Minh
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Create integration test database schema
+        run: |
+          PGPASSWORD="$DB_PASSWORD" psql \
+            -h "$DB_HOST" \
+            -p "$DB_PORT" \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -v ON_ERROR_STOP=1 \
+            -f server/database/test/gamification-worker-integration-fixture.sql
+
+      - name: Run Gamification Worker integration test
+        working-directory: server
+        run: node --test tests/gamification-worker.integration.test.js

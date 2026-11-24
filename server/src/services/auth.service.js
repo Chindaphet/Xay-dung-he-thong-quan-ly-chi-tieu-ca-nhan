@@ -11,10 +11,10 @@ const {
     validateLogin,
     validateForgotPassword,
     validateResetPassword,
+    validateChangePassword,
 } = require("../validators/auth.validator");
 
 const { generateAccessToken } = require("../utils/token.util");
-
 const {
     generateRefreshToken,
     hashRefreshToken,
@@ -66,7 +66,6 @@ const escapeHtml = (value) => {
 // Register a new user
 const register = async (data) => {
     const validation = validateRegister(data);
-
     if (!validation.isValid) {
         const error = new Error("Invalid registration data.");
         error.status = 400;
@@ -78,9 +77,7 @@ const register = async (data) => {
     const fullName = data.full_name.trim();
     const email = data.email.trim().toLowerCase();
     const preferredLanguage = (data.preferred_language || "vi").trim();
-
     const existingUsername = await userRepository.findByUsername(username);
-
     if (existingUsername) {
         const error = new Error("Username is already taken.");
         error.status = 409;
@@ -88,7 +85,6 @@ const register = async (data) => {
     }
 
     const existingEmail = await userRepository.findByEmail(email);
-
     if (existingEmail) {
         const error = new Error("Email is already registered.");
         error.status = 409;
@@ -96,7 +92,6 @@ const register = async (data) => {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
-
     const user = await userRepository.createUser({
         username,
         fullName,
@@ -111,7 +106,6 @@ const register = async (data) => {
 // Login an existing user
 const login = async (data) => {
     const validation = validateLogin(data);
-
     if (!validation.isValid) {
         const error = new Error("Invalid login data.");
         error.status = 400;
@@ -120,7 +114,6 @@ const login = async (data) => {
     }
 
     const identifier = data.identifier.trim().toLowerCase();
-
     const user = identifier.includes("@")
         ? await userRepository.findByEmail(identifier)
         : await userRepository.findByUsername(identifier);
@@ -183,7 +176,6 @@ const refreshAccessToken = async (refreshToken) => {
 
     try {
         await client.query("BEGIN");
-
         const storedToken = await refreshTokenRepository.findValidByHash(
             tokenHash,
             client
@@ -208,7 +200,6 @@ const refreshAccessToken = async (refreshToken) => {
         );
 
         const user = userResult.rows[0];
-
         if (!user) {
             const error = new Error("User account not found.");
             error.status = 401;
@@ -219,7 +210,6 @@ const refreshAccessToken = async (refreshToken) => {
         const newRefreshToken = generateRefreshToken();
         const newTokenHash = hashRefreshToken(newRefreshToken);
         const newExpiresAt = getRefreshTokenExpiration();
-
         const revokedToken = await refreshTokenRepository.revokeById(
             storedToken.refresh_token_id,
             client
@@ -241,7 +231,6 @@ const refreshAccessToken = async (refreshToken) => {
         );
 
         await client.query("COMMIT");
-
         return {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
@@ -267,7 +256,6 @@ const logout = async (refreshToken) => {
     }
 
     const tokenHash = hashRefreshToken(refreshToken);
-
     const storedToken = await refreshTokenRepository.findValidByHash(
         tokenHash
     );
@@ -290,17 +278,14 @@ const logout = async (refreshToken) => {
 // Request a password reset email
 const requestPasswordReset = async (email) => {
     const validation = validateForgotPassword({ email });
-
     if (!validation.isValid) {
         const error = new Error("Invalid password reset request.");
         error.status = 400;
         error.details = validation.errors;
         throw error;
     }
-
     const normalizedEmail = email.trim().toLowerCase();
     const user = await userRepository.findByEmail(normalizedEmail);
-
     // Always return the same message if the account does not exist
     if (!user) {
         return {
@@ -310,18 +295,14 @@ const requestPasswordReset = async (email) => {
 
     const rawToken = generatePasswordResetToken();
     const tokenHash = hashPasswordResetToken(rawToken);
-
     const expiresAt = new Date(
         Date.now() +
         PASSWORD_RESET_EXPIRES_IN_MINUTES * 60 * 1000
     );
-
     const client = await pool.connect();
     let resetTokenRecord;
-
     try {
         await client.query("BEGIN");
-
         // Invalidate previous unused reset tokens
         await passwordResetRepository.invalidateUnusedTokensByUserId(
             user.user_id,
@@ -346,10 +327,8 @@ const requestPasswordReset = async (email) => {
     }
 
     const clientUrl = process.env.CLIENT_URL;
-
     if (!clientUrl) {
         console.error("Password reset email could not be sent: CLIENT_URL is missing.");
-
         await pool.query(
             `
                 UPDATE password_reset_tokens
@@ -372,33 +351,31 @@ const requestPasswordReset = async (email) => {
 
     const subject = "Reset Your Devo Password";
 
-    const text = `
-Hello ${user.full_name || user.username},
+const text = `
+    Hello ${user.full_name || user.username},
 
-We received a request to reset your Devo Personal Expense password.
+    We received a request to reset your Devo Personal Expense password.
 
-Open the following link to reset your password:
+    Open the following link to reset your password:
 
-${resetUrl.toString()}
+    ${resetUrl.toString()}
 
-This link expires in ${PASSWORD_RESET_EXPIRES_IN_MINUTES} minutes.
+    This link expires in ${PASSWORD_RESET_EXPIRES_IN_MINUTES} minutes.
 
-If you did not request this change, you can ignore this email.
+    If you did not request this change, you can ignore this email.
 
-Devo Personal Expense
-    `.trim();
+    Devo Personal Expense
+        `.trim();
 
     const html = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
             <h2>Password Reset Request</h2>
 
             <p>Hello ${safeName},</p>
-
             <p>
                 We received a request to reset your
                 Devo Personal Expense password.
             </p>
-
             <p>
                 <a
                     href="${resetUrl.toString()}"
@@ -414,17 +391,14 @@ Devo Personal Expense
                     Reset Password
                 </a>
             </p>
-
             <p>
                 This link expires in
                 ${PASSWORD_RESET_EXPIRES_IN_MINUTES} minutes.
             </p>
-
             <p>
                 If you did not request this change,
                 you can safely ignore this email.
             </p>
-
             <p>Devo Personal Expense</p>
         </div>
     `;
@@ -546,36 +520,174 @@ const resetPassword = async (token, password) => {
         client.release();
     }
 };
+
+// Change password for authenticated user
+const changePassword = async (userId, data) => {
+    const validation = validateChangePassword(data);
+
+    if (!validation.isValid) {
+        const error = new Error("Invalid change password data.");
+        error.status = 400;
+        error.details = validation.errors;
+        throw error;
+    }
+
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+        const error = new Error("User account not found.");
+        error.status = 404;
+        throw error;
+    }
+
+    // Retrieve password hash for verification
+    const userWithPassword = await pool.query(
+        `
+            SELECT password_hash
+            FROM users
+            WHERE user_id = $1
+            LIMIT 1;
+        `,
+        [userId]
+    );
+
+    if (!userWithPassword.rows[0]) {
+        const error = new Error("User account not found.");
+        error.status = 404;
+        throw error;
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+        data.currentPassword,
+        userWithPassword.rows[0].password_hash
+    );
+
+    if (!isCurrentPasswordValid) {
+        const error = new Error("Current password is incorrect.");
+        error.status = 401;
+        throw error;
+    }
+
+    const passwordHash = await bcrypt.hash(data.newPassword, 12);
+    const client = await pool.connect();
+    let transactionStarted = false;
+
+    try {
+        await client.query("BEGIN");
+        transactionStarted = true;
+
+        const updatedUser = await userRepository.updatePasswordByUserId(
+            userId,
+            passwordHash,
+            client
+        );
+
+        if (!updatedUser) {
+            const error = new Error("Unable to change password.");
+            error.status = 400;
+            throw error;
+        }
+
+        // Revoke all existing refresh tokens
+        await refreshTokenRepository.revokeAllByUserId(
+            userId,
+            client
+        );
+
+        await client.query("COMMIT");
+        transactionStarted = false;
+
+        return {
+            message: "Password changed successfully. Please log in again.",
+        };
+    } catch (error) {
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                console.error(
+                    "[Auth Service] Password change rollback failed:",
+                    rollbackError
+                );
+            }
+        }
+
+        throw error;
+    } finally {
+        client.release();
+    }
+
+};
+
 // Update user profile
 const updateProfile = async (userId, data) => {
+    const username = data.username?.trim().toLowerCase();
     const fullName = data.fullName?.trim();
     const email = data.email?.trim().toLowerCase();
 
-    if (!fullName || !email) {
-        throw new Error("Full name and email are required.");
+    // Validate required fields
+    if (!username || !fullName || !email) {
+        const error = new Error(
+            "Username, full name, and email are required."
+        );
+        error.status = 400;
+        throw error;
     }
 
+    // Validate username format
+    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+        const error = new Error(
+            "Username must be 3–30 characters and contain only letters, numbers, and underscores."
+        );
+        error.status = 400;
+        throw error;
+    }
+
+    // Validate full name
     if (fullName.length > 100) {
-        throw new Error("Full name must not exceed 100 characters.");
+        const error = new Error(
+            "Full name must not exceed 100 characters."
+        );
+        error.status = 400;
+        throw error;
     }
 
+    // Check username availability
+    const existingUsername =
+        await userRepository.findByUsername(username);
+
+    if (
+        existingUsername &&
+        existingUsername.user_id !== userId
+    ) {
+        const error = new Error("Username is already taken.");
+        error.status = 409;
+        throw error;
+    }
+
+    // Check email availability
     const existingUser = await userRepository.findByEmail(email);
 
     if (
         existingUser &&
         existingUser.user_id !== userId
     ) {
-        throw new Error("Email is already in use.");
+        const error = new Error("Email is already in use.");
+        error.status = 409;
+        throw error;
     }
 
     const updatedUser = await userRepository.updateProfileByUserId(
         userId,
+        username,
         fullName,
         email
     );
 
     if (!updatedUser) {
-        throw new Error("User not found.");
+        const error = new Error("User not found.");
+        error.status = 404;
+        throw error;
     }
 
     return updatedUser;
@@ -588,5 +700,6 @@ module.exports = {
     logout,
     requestPasswordReset,
     resetPassword,
+    changePassword,
     updateProfile,
 };

@@ -11,6 +11,7 @@ import {
 } from "./services/auth";
 
 import Dashboard from "./pages/Dashboard";
+import { useTheme } from "./contexts/ThemeContext";
 import Budget from "./pages/Budget";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
@@ -69,16 +70,66 @@ function PasswordToggle({ visible, onClick }) {
 
 function AuthLanguageSwitcher({ language, changeLanguage, t }) {
     const [isOpen, setIsOpen] = useState(false);
+    const { theme, setTheme } = useTheme();
+    const handleToggleTheme = () => {
+        setTheme(theme === "light" ? "dark" : "light");
+    };
     return (
         <div className="auth-language-switcher">
+            <button
+                type="button"
+                className="auth-theme-trigger"
+                onClick={handleToggleTheme}
+                aria-label={
+                    theme === "light"
+                        ? "Switch to dark mode"
+                        : "Switch to light mode"
+                }
+                title={
+                    theme === "light"
+                        ? "Dark Mode"
+                        : "Light Mode"
+                }>
+                {theme === "light" ? (
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2" />
+                        <path d="M12 20v2" />
+                        <path d="m4.93 4.93 1.42 1.42" />
+                        <path d="m17.65 17.65 1.42 1.42" />
+                        <path d="M2 12h2" />
+                        <path d="M20 12h2" />
+                        <path d="m4.93 19.07 1.42-1.42" />
+                        <path d="m17.65 6.35 1.42-1.42" />
+                    </svg>
+                ) : (
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true">
+                        <path d="M20.9 13.1A9 9 0 0 1 10.9 3.1a9 9 0 1 0 10 10Z" />
+                    </svg>
+                )}
+            </button>
+
             <div className="auth-language-dropdown">
                 <button
                     type="button"
                     className="auth-language-trigger"
                     onClick={() => setIsOpen((previous) => !previous)}
                     aria-expanded={isOpen}
-                    aria-label="Select language"
-                >
+                    aria-label="Select language">
                     {language.toUpperCase()}
                 </button>
 
@@ -92,8 +143,7 @@ function AuthLanguageSwitcher({ language, changeLanguage, t }) {
                             onClick={() => {
                                 changeLanguage("en");
                                 setIsOpen(false);
-                            }}
-                        >
+                            }}>
                             <span className="auth-language-circle">EN</span>
                             <span>{t("auth.english")}</span>
                         </button>
@@ -106,8 +156,7 @@ function AuthLanguageSwitcher({ language, changeLanguage, t }) {
                             onClick={() => {
                                 changeLanguage("vi");
                                 setIsOpen(false);
-                            }}
-                        >
+                            }}>
                             <span className="auth-language-circle">VI</span>
                             <span>{t("auth.vietnamese")}</span>
                         </button>
@@ -140,6 +189,8 @@ function App() {
     const [showLoginPassword, setShowLoginPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+    const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
 
     const [resetToken, setResetToken] = useState(
         () => new URLSearchParams(window.location.search).get("token") || ""
@@ -159,6 +210,7 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [passwordChangedMessage, setPasswordChangedMessage] = useState("");
 
     // Check authentication when the application starts
     useEffect(() => {
@@ -181,7 +233,6 @@ function App() {
         event.preventDefault();
         setError("");
         setSubmitting(true);
-
         try {
             const loggedInUser = await login(
                 identifier.trim(),
@@ -202,12 +253,10 @@ function App() {
         event.preventDefault();
         setRegisterError("");
         setRegisterSuccess("");
-
         if (registerPassword !== registerConfirmPassword) {
             setRegisterError("Passwords do not match.");
             return;
         }
-
         if (
             registerPassword.length < 8 ||
             registerPassword.length > 72
@@ -328,7 +377,22 @@ function App() {
         setActivePage(pageId);
         setIsSidebarOpen(false);
     };
+    // Handle successful password change
+    const handlePasswordChanged = () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
 
+        setUser(null);
+        setIdentifier("");
+        setPassword("");
+        setError("");
+        setIsSidebarOpen(false);
+        setActivePage("dashboard");
+
+        setPasswordChangedMessage(
+            t("settings.passwordChangedLogin")
+        );
+    };
     // Handle logout
     const handleLogout = async () => {
         try {
@@ -361,10 +425,10 @@ function App() {
             onNavigate: handleNavigate,
             isSidebarOpen,
             onToggleSidebar: handleToggleSidebar,
+            onPasswordChanged: handlePasswordChanged,
         };
 
         let currentPage;
-
         switch (activePage) {
             case "transactions":
                 currentPage = <Transactions {...pageProps} />;
@@ -575,233 +639,247 @@ function App() {
             </main>
         );
     }
-
-    
-// Forgot password screen
-if (showForgotPassword) {
-    return (
-        <main className="login-page">
-            <AuthLanguageSwitcher
-                language={language}
-                changeLanguage={changeLanguage}
-                t={t}
-            />
-            <section className="login-card">
-                <div className="login-brand">
-                    <h1>Devo</h1>
-                    <p>Personal Expense Management</p>
-                </div>
-
-                <div className="login-heading">
-                    <h2>{t("auth.forgotPasswordTitle")}</h2>
-                    <p>{t("auth.forgotPasswordSubtitle")}</p>
-                </div>
-
-                <form onSubmit={handleForgotPassword}>
-                    <div className="form-group">
-                        <label htmlFor="forgotEmail">
-                            {t("auth.email")}
-                        </label>
-
-                        <input
-                            id="forgotEmail"
-                            type="email"
-                            value={forgotEmail}
-                            onChange={(event) => {
-                                setForgotEmail(event.target.value);
-                                setForgotMessage("");
-                                setForgotError("");
-                            }}
-                            placeholder={t("auth.forgotEmailPlaceholder")}
-                            autoComplete="email"
-                            required
-                        />
+    // Forgot password screen
+    if (showForgotPassword) {
+        return (
+            <main className="login-page">
+                <AuthLanguageSwitcher
+                    language={language}
+                    changeLanguage={changeLanguage}
+                    t={t}
+                />
+                <section className="login-card">
+                    <div className="login-brand">
+                        <h1>Devo</h1>
+                        <p>Personal Expense Management</p>
                     </div>
 
-                    {forgotMessage && (
-                        <p className="login-success" role="status">
-                            {forgotMessage}
-                        </p>
-                    )}
+                    <div className="login-heading">
+                        <h2>{t("auth.forgotPasswordTitle")}</h2>
+                        <p>{t("auth.forgotPasswordSubtitle")}</p>
+                    </div>
 
-                    {forgotError && (
-                        <p className="login-error" role="alert">
-                            {forgotError}
-                        </p>
-                    )}
+                    <form onSubmit={handleForgotPassword}>
+                        <div className="form-group">
+                            <label htmlFor="forgotEmail">
+                                {t("auth.email")}
+                            </label>
 
-                    <button type="submit" disabled={submitting}>
-                        {submitting
-                            ? t("auth.sending")
-                            : t("auth.sendResetLink")}
+                            <input
+                                id="forgotEmail"
+                                type="email"
+                                value={forgotEmail}
+                                onChange={(event) => {
+                                    setForgotEmail(event.target.value);
+                                    setForgotMessage("");
+                                    setForgotError("");
+                                }}
+                                placeholder={t("auth.forgotEmailPlaceholder")}
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
+
+                        {forgotMessage && (
+                            <p className="login-success" role="status">
+                                {forgotMessage}
+                            </p>
+                        )}
+
+                        {forgotError && (
+                            <p className="login-error" role="alert">
+                                {forgotError}
+                            </p>
+                        )}
+
+                        <button type="submit" disabled={submitting}>
+                            {submitting
+                                ? t("auth.sending")
+                                : t("auth.sendResetLink")}
+                        </button>
+                    </form>
+
+                    <button
+                        type="button"
+                        className="forgot-back-button"
+                        onClick={() => {
+                            setShowForgotPassword(false);
+                            setForgotMessage("");
+                            setForgotError("");
+                        }}
+                    >
+                        {t("auth.backToSignIn")}
                     </button>
-                </form>
 
-                <button
-                    type="button"
-                    className="forgot-back-button"
-                    onClick={() => {
-                        setShowForgotPassword(false);
-                        setForgotMessage("");
-                        setForgotError("");
-                    }}
-                >
-                    {t("auth.backToSignIn")}
-                </button>
-
-                <p className="login-footer">
-                    {t("auth.footer")}
-                </p>
-            </section>
-        </main>
-    );
-}
-
+                    <p className="login-footer">
+                        {t("auth.footer")}
+                    </p>
+                </section>
+            </main>
+        );
+    }
     // Registration screen
     if (showRegister) {
-    return (
-        <main className="login-page">
-            <AuthLanguageSwitcher
-                language={language}
-                changeLanguage={changeLanguage}
-                t={t}
-            />
-            <section className="login-card register-card">
-                <div className="login-brand">
-                    <h1>Devo</h1>
-                    <p>Personal Expense Management</p>
-                </div>
-
-                <div className="login-heading">
-                    <h2>{t("auth.registerTitle")}</h2>
-                    <p>{t("auth.registerSubtitle")}</p>
-                </div>
-
-                <form className="register-form" onSubmit={handleRegister}>
-                    <div className="form-group">
-                        <label htmlFor="registerUsername">
-                            {t("auth.username")}
-                        </label>
-                        <input
-                            id="registerUsername"
-                            type="text"
-                            value={registerUsername}
-                            onChange={(event) =>
-                                setRegisterUsername(event.target.value)
-                            }
-                            placeholder="Enter username"
-                            minLength={3}
-                            maxLength={50}
-                            autoComplete="username"
-                            required
-                        />
+        return (
+            <main className="login-page">
+                <AuthLanguageSwitcher
+                    language={language}
+                    changeLanguage={changeLanguage}
+                    t={t}
+                />
+                <section className="login-card register-card">
+                    <div className="login-brand">
+                        <h1>Devo</h1>
+                        <p>Personal Expense Management</p>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="registerFullName">
-                            {t("auth.fullName")}
-                        </label>
-                        <input
-                            id="registerFullName"
-                            type="text"
-                            value={registerFullName}
-                            onChange={(event) =>
-                                setRegisterFullName(event.target.value)
-                            }
-                            placeholder="Enter your full name"
-                            maxLength={100}
-                            autoComplete="name"
-                            required
-                        />
+                    <div className="login-heading">
+                        <h2>{t("auth.registerTitle")}</h2>
+                        <p>{t("auth.registerSubtitle")}</p>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="registerEmail">
-                            {t("auth.email")}
-                        </label>
-                        <input
-                            id="registerEmail"
-                            type="email"
-                            value={registerEmail}
-                            onChange={(event) =>
-                                setRegisterEmail(event.target.value)
-                            }
-                            placeholder="Enter your email"
-                            autoComplete="email"
-                            required
-                        />
-                    </div>
+                    <form className="register-form" onSubmit={handleRegister}>
+                        <div className="form-group">
+                            <label htmlFor="registerUsername">
+                                {t("auth.username")}
+                            </label>
+                            <input
+                                id="registerUsername"
+                                type="text"
+                                value={registerUsername}
+                                onChange={(event) =>
+                                    setRegisterUsername(event.target.value)
+                                }
+                                placeholder="Enter username"
+                                minLength={3}
+                                maxLength={50}
+                                autoComplete="username"
+                                required
+                            />
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="registerPassword">
-                            {t("auth.password")}
-                        </label>
-                        <input
-                            id="registerPassword"
-                            type="password"
-                            value={registerPassword}
-                            onChange={(event) =>
-                                setRegisterPassword(event.target.value)
-                            }
-                            placeholder="Create a password"
-                            minLength={8}
-                            maxLength={72}
-                            autoComplete="new-password"
-                            required
-                        />
-                    </div>
+                        <div className="form-group">
+                            <label htmlFor="registerFullName">
+                                {t("auth.fullName")}
+                            </label>
+                            <input
+                                id="registerFullName"
+                                type="text"
+                                value={registerFullName}
+                                onChange={(event) =>
+                                    setRegisterFullName(event.target.value)
+                                }
+                                placeholder="Enter your full name"
+                                maxLength={100}
+                                autoComplete="name"
+                                required
+                            />
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="registerConfirmPassword">
-                            {t("auth.confirmPassword")}
-                        </label>
-                        <input
-                            id="registerConfirmPassword"
-                            type="password"
-                            value={registerConfirmPassword}
-                            onChange={(event) =>
-                                setRegisterConfirmPassword(event.target.value)
-                            }
-                            placeholder="Confirm your password"
-                            minLength={8}
-                            maxLength={72}
-                            autoComplete="new-password"
-                            required
-                        />
-                    </div>
+                        <div className="form-group">
+                            <label htmlFor="registerEmail">
+                                {t("auth.email")}
+                            </label>
+                            <input
+                                id="registerEmail"
+                                type="email"
+                                value={registerEmail}
+                                onChange={(event) =>
+                                    setRegisterEmail(event.target.value)
+                                }
+                                placeholder="Enter your email"
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="registerPassword">
+                                {t("auth.password")}
+                            </label>
 
-                    {registerError && (
-                        <p className="login-error" role="alert">
-                            {registerError}
-                        </p>
-                    )}
+                            <div className="password-input-wrapper">
+                                <input
+                                    id="registerPassword"
+                                    type={showRegisterPassword ? "text" : "password"}
+                                    value={registerPassword}
+                                    onChange={(event) =>
+                                        setRegisterPassword(event.target.value)
+                                    }
+                                    placeholder="Create a password"
+                                    minLength={8}
+                                    maxLength={72}
+                                    autoComplete="new-password"
+                                    required
+                                />
 
-                    <button type="submit" disabled={submitting}>
-                        {submitting
-                            ? t("auth.creatingAccount")
-                            : t("auth.signUp")}
+                                <PasswordToggle
+                                    visible={showRegisterPassword}
+                                    onClick={() =>
+                                        setShowRegisterPassword((previous) => !previous)
+                                    }
+                                />
+                            </div>
+                            </div>
+                        <div className="form-group">
+                            <label htmlFor="registerConfirmPassword">
+                                {t("auth.confirmPassword")}
+                            </label>
+
+                            <div className="password-input-wrapper">
+                                <input
+                                    id="registerConfirmPassword"
+                                    type={showRegisterConfirmPassword ? "text" : "password"}
+                                    value={registerConfirmPassword}
+                                    onChange={(event) =>
+                                        setRegisterConfirmPassword(event.target.value)
+                                    }
+                                    placeholder="Confirm your password"
+                                    minLength={8}
+                                    maxLength={72}
+                                    autoComplete="new-password"
+                                    required
+                                />
+
+                                <PasswordToggle
+                                    visible={showRegisterConfirmPassword}
+                                    onClick={() =>
+                                        setShowRegisterConfirmPassword((previous) => !previous)
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {registerError && (
+                            <p className="login-error" role="alert">
+                                {registerError}
+                            </p>
+                        )}
+
+                        <button type="submit" disabled={submitting}>
+                            {submitting
+                                ? t("auth.creatingAccount")
+                                : t("auth.signUp")}
+                        </button>
+                    </form>
+
+                    <button
+                        type="button"
+                        className="forgot-back-button"
+                        onClick={() => {
+                            setShowRegister(false);
+                            setRegisterError("");
+                        }}
+                    >
+                        {t("auth.backToSignIn")}
                     </button>
-                </form>
 
-                <button
-                    type="button"
-                    className="forgot-back-button"
-                    onClick={() => {
-                        setShowRegister(false);
-                        setRegisterError("");
-                    }}
-                >
-                    {t("auth.backToSignIn")}
-                </button>
-
-                <p className="login-footer">
-                    Personal Expense Management System
-                </p>
-            </section>
-        </main>
-    );
-}
-
+                    <p className="login-footer">
+                        Personal Expense Management System
+                    </p>
+                </section>
+            </main>
+        );
+    }
     // Login screen
     return (
         <main className="login-page">
@@ -821,10 +899,15 @@ if (showForgotPassword) {
                     <p>{t("auth.loginSubtitle")}</p>
                 </div>
                 {registerSuccess && (
-    <p className="login-success" role="status">
-        {registerSuccess}
-    </p>
-)}
+                    <p className="login-success" role="status">
+                        {registerSuccess}
+                    </p>
+                )}
+                {passwordChangedMessage && (
+                    <p className="login-success" role="status">
+                        {passwordChangedMessage}
+                    </p>
+                )}
 
                 <form onSubmit={handleLogin}>
                     <div className="form-group">

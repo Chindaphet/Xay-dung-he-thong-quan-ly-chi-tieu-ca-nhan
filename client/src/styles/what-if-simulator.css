@@ -2,7 +2,6 @@
 /* ========================================
    WHAT-IF SIMULATOR
 ======================================== */
-
 .what-if-simulator-content {
     padding: 28px 32px;
     max-width: 1500px;
@@ -14,7 +13,6 @@
 }
 
 /* Page Heading */
-
 .simulator-page-heading {
     display: flex;
     justify-content: space-between;
@@ -78,6 +76,10 @@
 }
 
 .simulator-error button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     margin-top: 12px;
     padding: 10px 22px;
     border: none;
@@ -125,7 +127,24 @@
     line-height: 1.6;
     margin: 0;
 }
+.simulator-section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
 
+.simulator-section-title > svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #7652d5;
+}
+
+.simulator-section-title > div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
 /* Expense Reduction */
 
 .simulator-category-list {
@@ -257,6 +276,10 @@
 
 .simulator-reset-button,
 .simulator-run-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     min-height: 42px;
     padding: 10px 22px;
     border-radius: 9px;

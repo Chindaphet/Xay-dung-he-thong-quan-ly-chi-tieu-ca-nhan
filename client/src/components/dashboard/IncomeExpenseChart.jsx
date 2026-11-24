@@ -136,34 +136,34 @@ function IncomeExpenseChart({ data = [] }) {
                 : formatWeekLabel(item.period)
             ),
         datasets: [
+                    {
+            label: t("dashboard.income"),
+            data: groupedData.map((item) => item.income),
+
+            backgroundColor: "rgba(36, 167, 122, 0.65)",
+            borderColor: "#24A77A",
+            borderWidth: 1,
+
+            order: 1,
+            grouped: true,
+            maxBarThickness: 38,
+            borderRadius: 5,
+            borderSkipped: false,
+        },
             {
-                label: t("dashboard.income"),
-                data: groupedData.map((item) => item.income),
+    label: t("dashboard.expenses"),
+    data: groupedData.map((item) => item.expenses),
 
-                backgroundColor: "rgba(36, 167, 122, 0.65)",
-                borderColor: "#24A77A",
-                borderWidth: 1,
+    backgroundColor: "rgba(239, 83, 103, 0.65)",
+    borderColor: "#EF5367",
+    borderWidth: 1,
 
-                order: 2,
-                grouped: false,
-                maxBarThickness: 38,
-                borderRadius: 5,
-                borderSkipped: false,
-            },
-            {
-                label: t("dashboard.expenses"),
-                data: groupedData.map((item) => item.expenses),
-
-                backgroundColor: "rgba(239, 83, 103, 0.65)",
-                borderColor: "#EF5367",
-                borderWidth: 1,
-
-                order: 1,
-                grouped: false,
-                maxBarThickness: 38,
-                borderRadius: 5,
-                borderSkipped: false,
-            },
+    order: 2,
+    grouped: true,
+    maxBarThickness: 38,
+    borderRadius: 5,
+    borderSkipped: false,
+},
         ],
     };
 

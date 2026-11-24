@@ -160,9 +160,62 @@ const validateResetPassword = (data) => {
     };
 };
 
+// Validate change password request
+const validateChangePassword = (data) => {
+    const errors = [];
+
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+        return {
+            isValid: false,
+            errors: ["Change password data must be an object."],
+        };
+    }
+
+    const {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+    } = data;
+
+    if (typeof currentPassword !== "string" || !currentPassword) {
+        errors.push("Current password is required.");
+    } else if (currentPassword.length > 72) {
+        errors.push("Current password must not exceed 72 characters.");
+    }
+
+    if (typeof newPassword !== "string" || !newPassword) {
+        errors.push("New password is required.");
+    } else if (newPassword.length < 8 || newPassword.length > 72) {
+        errors.push("New password must be between 8 and 72 characters.");
+    }
+
+    if (typeof confirmPassword !== "string" || !confirmPassword) {
+        errors.push("Password confirmation is required.");
+    } else if (
+        typeof newPassword === "string" &&
+        newPassword !== confirmPassword
+    ) {
+        errors.push("New password and confirmation do not match.");
+    }
+
+    if (
+        typeof currentPassword === "string" &&
+        typeof newPassword === "string" &&
+        currentPassword === newPassword
+    ) {
+        errors.push("New password must be different from current password.");
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+    };
+};
+
 module.exports = {
     validateRegister,
     validateLogin,
     validateForgotPassword,
     validateResetPassword,
+    validateChangePassword,
 };

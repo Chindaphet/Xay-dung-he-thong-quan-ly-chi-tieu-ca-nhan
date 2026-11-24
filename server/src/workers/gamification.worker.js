@@ -3,20 +3,21 @@ const gamificationRepository = require("../repositories/gamification.repository"
 const gamificationService = require("../services/gamification.service");
 const transactionRepository = require("../repositories/transaction.repository");
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 1;
 const POLL_INTERVAL_MS = 5000;
 const STALE_EVENT_MINUTES = 10;
+const LEASE_RENEW_INTERVAL_MS = 2 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const SHUTDOWN_TIMEOUT_MS = 30 * 1000;
 
 // Convert transaction creation time to a date in Thailand timezone.
 const getThailandActivityDate = (createdAt) => {
     const date = new Date(createdAt);
-    if (Number.isNaN(date.getTime())) {throw new Error(
-        "Invalid transaction creation date.");
+    if (Number.isNaN(date.getTime())) {
+        throw new Error("Invalid transaction creation date.");
     }
     const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Bangkok",
+        timeZone: process.env.APP_TIMEZONE || "Asia/Ho_Chi_Minh",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -33,7 +34,6 @@ const processGamificationEvent = async (event) => {
     }
 
     const transactionId = event.reference_id;
-
     if (!transactionId) {
         throw new Error("Transaction reference ID is missing.");
     }
@@ -86,26 +86,97 @@ const processGamificationEvent = async (event) => {
         event.event_id
     );
 };
+// Process an event while maintaining its ownership lease.
+
+const processEventWithLease = async (event) => {
+    let leaseOwnershipUncertain = false;
+    let renewalPromise = null;
+    let processingError = null;
+
+    const renewalInterval = setInterval(() => {
+        if (leaseOwnershipUncertain || renewalPromise) {
+            return;
+        }
+        renewalPromise = (async () => {
+            try {
+                const renewed =
+                    await gamificationRepository.renewGamificationEventLease(
+                        event.event_id,
+                        event.lease_token
+                    );
+
+                if (!renewed) {
+                    leaseOwnershipUncertain = true;
+
+                    console.error(
+                        `[Gamification Worker] Lease lost for event ${event.event_id}.`
+                    );
+                }
+            } catch (error) {
+                leaseOwnershipUncertain = true;
+
+                console.error(
+                    `[Gamification Worker] Could not verify lease renewal for event ${event.event_id}:`,
+                    error.message
+                );
+            } finally {
+                renewalPromise = null;
+            }
+        })();
+    }, LEASE_RENEW_INTERVAL_MS);
+
+    try {
+        await processGamificationEvent(event);
+    } catch (error) {
+        processingError = error;
+    } finally {
+        clearInterval(renewalInterval);
+
+        if (renewalPromise) {
+            await renewalPromise;
+        }
+    }
+
+    return {
+        leaseOwnershipUncertain,
+        processingError,
+    };
+};
 
 // Process pending events.
 let isRunning = false;
 const processPendingGamificationEvents = async () => {
-    if (isRunning) {return;}
+    if (isRunning) {
+        return;
+    }
     isRunning = true;
     let processedCount = 0;
-
     try {
         // Recover events left processing after an interruption.
         await gamificationRepository.recoverStaleGamificationEvents(STALE_EVENT_MINUTES);
         // Claim events before processing them.
-        const events =await gamificationRepository.claimPendingGamificationEvents(BATCH_SIZE);
+        const events =await gamificationRepository.claimPendingGamificationEvents(
+            BATCH_SIZE
+        );
         for (const event of events) {
             try {
-                await processGamificationEvent(event);
-
+                const {
+                    leaseOwnershipUncertain,
+                    processingError,
+                } = await processEventWithLease(event);
+                if (leaseOwnershipUncertain) {
+                    console.error(
+                        `[Gamification Worker] Skipping event ${event.event_id}: lease ownership could not be verified.`
+                    );
+                    continue;
+                }
+                if (processingError) {
+                    throw processingError;
+                }
                 const processedEvent =
                     await gamificationRepository.markGamificationEventProcessed(
-                        event.event_id
+                        event.event_id,
+                        event.lease_token
                     );
 
                 if (!processedEvent) {
@@ -127,6 +198,7 @@ const processPendingGamificationEvents = async () => {
                     const failedEvent =
                         await gamificationRepository.markGamificationEventFailed(
                             event.event_id,
+                            event.lease_token,
                             error.message,
                             MAX_ATTEMPTS
                         );
@@ -160,7 +232,6 @@ const processPendingGamificationEvents = async () => {
         isRunning = false;
     }
 };
-
 // Start the worker.
 const startGamificationWorker = ({
     batchProcessor = processPendingGamificationEvents,

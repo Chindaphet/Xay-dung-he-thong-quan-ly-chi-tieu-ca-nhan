@@ -1,7 +1,5 @@
 
-
 const categoryRepository = require("../repositories/category.repository");
-
 const {
     validateCategory,
     validateCategoryUpdate,
@@ -9,14 +7,12 @@ const {
     validateCategoryStatus,
 } = require("../validators/category.validator");
 
-
 // Create a standard API error
 const createError = (message, status = 400) => {
     const error = new Error(message);
     error.status = status;
     return error;
 };
-
 
 // Handle duplicate category names
 const handleDatabaseError = (error) => {
@@ -30,14 +26,12 @@ const handleDatabaseError = (error) => {
     throw error;
 };
 
-
 // Validate category ID
 const validateId = (categoryId) => {
     if (!validateCategoryId(categoryId)) {
         throw createError("Invalid category ID.");
     }
 };
-
 
 // Find an existing category
 const getExistingCategory = async (categoryId, userId) => {
@@ -55,7 +49,6 @@ const getExistingCategory = async (categoryId, userId) => {
     return category;
 };
 
-
 // Check duplicate category name and type
 const checkDuplicateCategory = async (
     userId,
@@ -67,7 +60,6 @@ const checkDuplicateCategory = async (
         userId,
         true
     );
-
     const duplicate = categories.some((category) => {
         return (
             category.name === name &&
@@ -75,7 +67,6 @@ const checkDuplicateCategory = async (
             category.category_id !== excludeCategoryId
         );
     });
-
     if (duplicate) {
         throw createError(
             "A category with this name and type already exists.",
@@ -83,7 +74,6 @@ const checkDuplicateCategory = async (
         );
     }
 };
-
 
 // Create a new category
 const createCategory = async (userId, data) => {
@@ -94,15 +84,12 @@ const createCategory = async (userId, data) => {
         error.details = validation.errors;
         throw error;
     }
-
     const name = data.name.trim();
-
     await checkDuplicateCategory(
         userId,
         name,
         data.type
     );
-
     try {
         return await categoryRepository.createCategory({
             userId,
@@ -165,19 +152,16 @@ const updateCategory = async (
             403
         );
     }
-
     const updatedName =
         data.name !== undefined
             ? data.name.trim()
             : existingCategory.name;
-
     await checkDuplicateCategory(
         userId,
         updatedName,
         existingCategory.type,
         categoryId
     );
-
     const updatedData = {
         name: updatedName,
         color:
@@ -189,7 +173,6 @@ const updateCategory = async (
                 ? data.icon
                 : existingCategory.icon,
     };
-
     try {
         return await categoryRepository.updateCategory(
             categoryId,
@@ -201,7 +184,6 @@ const updateCategory = async (
     }
 };
 
-
 // Activate or deactivate a category
 const toggleCategory = async (
     categoryId,
@@ -209,12 +191,30 @@ const toggleCategory = async (
     isActive
 ) => {
     validateId(categoryId);
-
     if (!validateCategoryStatus(isActive)) {
         throw createError(
             "Category status must be a boolean."
         );
     }
+    const existingCategory = await getExistingCategory(
+        categoryId,
+        userId
+    );
+    if (existingCategory.is_default) {
+        throw createError(
+            "Default categories cannot be deactivated or activated.",
+            403
+        );
+    }
+    return await categoryRepository.toggleCategory(
+        categoryId,
+        userId,
+        isActive
+    );
+};
+// Delete an existing category
+const deleteCategory = async (categoryId, userId) => {
+    validateId(categoryId);
 
     const existingCategory = await getExistingCategory(
         categoryId,
@@ -223,23 +223,32 @@ const toggleCategory = async (
 
     if (existingCategory.is_default) {
         throw createError(
-            "Default categories cannot be deactivated or activated.",
+            "Default categories cannot be deleted.",
             403
         );
     }
 
-    return await categoryRepository.toggleCategory(
-        categoryId,
-        userId,
-        isActive
-    );
+    try {
+        return await categoryRepository.deleteCategory(
+            categoryId,
+            userId
+        );
+    } catch (error) {
+        if (error.code === "23503") {
+            throw createError(
+                "This category is being used by transactions, recurring transactions, or budgets and cannot be deleted.",
+                409
+            );
+        }
+
+        throw error;
+    }
 };
-
-
 module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
     updateCategory,
     toggleCategory,
+    deleteCategory,
 };

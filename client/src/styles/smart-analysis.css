@@ -82,6 +82,10 @@
 }
 
 .smart-analysis-error button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     margin-top: 12px;
     padding: 10px 22px;
     border: none;
@@ -120,6 +124,7 @@
 .analysis-card {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 14px;
     padding: 24px;
     background: var(--card-background, #fff);
@@ -152,7 +157,15 @@
 .analysis-card.balance strong {
     color: #7652d5;
 }
+.analysis-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
+.analysis-card-heading svg {
+    flex-shrink: 0;
+}
 /* Panels */
 
 .analysis-panel {

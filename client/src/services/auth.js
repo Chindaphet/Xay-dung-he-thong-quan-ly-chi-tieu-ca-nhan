@@ -111,7 +111,14 @@ export const updateProfile = async (profileData) => {
     const result = await response.json();
 
     if (!response.ok) {
-        throw new Error(result.message || "Failed to update profile.");
+        const error = new Error(
+            result.message || "Failed to update profile."
+        );
+
+        error.status = response.status;
+        error.details = result.details || null;
+
+        throw error;
     }
 
     return result.data.user;

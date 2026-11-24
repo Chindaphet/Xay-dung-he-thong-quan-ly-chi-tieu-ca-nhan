@@ -1,4 +1,10 @@
 
+import {
+    TrendingUp,
+    TrendingDown,
+    Wallet,
+    RefreshCw,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import useLanguage from "../hooks/useLanguage";
 import Header from "../components/layout/Header";
@@ -44,7 +50,13 @@ const formatPercentage = (value) => {
     return `${Number(value).toFixed(2)}%`;
 };
 
-function SmartAnalysis({user,isSidebarOpen,onToggleSidebar,}) {
+function SmartAnalysis({
+    user,
+    isSidebarOpen,
+    onToggleSidebar,
+    onNavigate,
+    onLogout,
+}) {
     const { t } = useLanguage();
 
     const [startDate, setStartDate] = useState(getMonthStart);
@@ -108,6 +120,8 @@ function SmartAnalysis({user,isSidebarOpen,onToggleSidebar,}) {
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <div className="smart-analysis-content">
@@ -172,6 +186,7 @@ function SmartAnalysis({user,isSidebarOpen,onToggleSidebar,}) {
                                 type="button"
                                 onClick={handleRetry}
                             >
+                                <RefreshCw size={16} strokeWidth={2} />
                                 {t("smartAnalysis.retry")}
                             </button>
                         </div>
@@ -189,27 +204,36 @@ function SmartAnalysis({user,isSidebarOpen,onToggleSidebar,}) {
 
                                 <div className="analysis-summary-grid">
                                     <div className="analysis-card income">
-                                        <span>
-                                            {t("smartAnalysis.totalIncome")}
-                                        </span>
+                                        <div className="analysis-card-heading">
+                                            <TrendingUp size={22} strokeWidth={2} />
+                                            <span>
+                                                {t("smartAnalysis.totalIncome")}
+                                            </span>
+                                        </div>
                                         <strong>
                                             {formatCurrency(summary?.total_income)}
                                         </strong>
                                     </div>
 
                                     <div className="analysis-card expense">
-                                        <span>
-                                            {t("smartAnalysis.totalExpenses")}
-                                        </span>
+                                        <div className="analysis-card-heading">
+                                            <TrendingDown size={22} strokeWidth={2} />
+                                            <span>
+                                                {t("smartAnalysis.totalExpenses")}
+                                            </span>
+                                        </div>
                                         <strong>
                                             {formatCurrency(summary?.total_expenses)}
                                         </strong>
                                     </div>
 
                                     <div className="analysis-card balance">
-                                        <span>
-                                            {t("smartAnalysis.netBalance")}
-                                        </span>
+                                        <div className="analysis-card-heading">
+                                            <Wallet size={22} strokeWidth={2} />
+                                            <span>
+                                                {t("smartAnalysis.netBalance")}
+                                            </span>
+                                        </div>
                                         <strong>
                                             {formatCurrency(summary?.net_balance)}
                                         </strong>

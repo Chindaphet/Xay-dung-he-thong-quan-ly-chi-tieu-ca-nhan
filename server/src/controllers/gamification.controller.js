@@ -1,8 +1,5 @@
 
-const gamificationService = require(
-    "../services/gamification.service"
-);
-
+const gamificationService = require("../services/gamification.service");
 // Get gamification overview
 const getGamificationOverview = async (req, res, next) => {
     try {

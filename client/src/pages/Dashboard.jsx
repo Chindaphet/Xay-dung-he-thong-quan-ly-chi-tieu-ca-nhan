@@ -36,6 +36,8 @@ function Dashboard({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t } = useLanguage();
 
@@ -106,10 +108,11 @@ function Dashboard({
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <div className="dashboard-content">
-
                     {/* Date Filter */}
                     <section className="dashboard-filter">
                         <div className="filter-heading">

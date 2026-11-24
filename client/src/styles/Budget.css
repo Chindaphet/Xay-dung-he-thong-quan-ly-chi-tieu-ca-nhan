@@ -35,24 +35,59 @@
     flex-direction: column;
     gap: 6px;
 }
+
 .budget-month-picker label {
     color: var(--text-secondary);
     font-size: 11px;
     font-weight: 600;
 }
-.budget-month-picker input {
-    min-width: 170px;
-    padding: 10px 12px;
-    color: var(--text-primary);
+
+.budget-month-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 220px;
+    padding: 6px;
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 8px;
-    font-family: inherit;
-    font-size: 12px;
-    outline: none;
 }
-.budget-month-picker input:focus {
-    border-color: var(--primary);
+
+.budget-month-value {
+    flex: 1;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.budget-month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--primary);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.budget-month-nav:hover {
+    background: var(--primary-light);
+}
+
+.budget-month-nav:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 /* ========================================
@@ -522,6 +557,10 @@
 }
 
 .budget-add-category-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 9px 14px;
     border: none;
     border-radius: 9px;
@@ -629,7 +668,6 @@
     cursor: not-allowed;
     transform: none;
 }
-
 
 /* ========================================
    17. CATEGORY BUDGET ACTIONS
@@ -760,8 +798,9 @@
     .budget-month-picker {
         width: 100%;
     }
-    .budget-month-picker input {
-        width: 100%;
+    .budget-month-controls {
+    width: 100%;
+    min-width: 0;
     }
 
     /* Summary Cards */
@@ -834,4 +873,103 @@
     .budget-category-actions {
         flex-wrap: wrap;
     }
+}
+/* ========================================
+   MONTH PICKER DROPDOWN
+======================================== */
+
+.budget-month-picker {
+    position: relative;
+}
+
+.budget-month-value {
+    flex: 1;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.budget-month-value:hover {
+    color: var(--primary);
+}
+
+.budget-month-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 100;
+    width: 260px;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.budget-month-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.budget-month-dropdown-header strong {
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.budget-month-dropdown-header button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--primary);
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.budget-month-dropdown-header button:hover {
+    background: var(--primary-light);
+}
+
+.budget-month-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.budget-month-grid button {
+    padding: 10px 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.budget-month-grid button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.budget-month-grid button.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
 }

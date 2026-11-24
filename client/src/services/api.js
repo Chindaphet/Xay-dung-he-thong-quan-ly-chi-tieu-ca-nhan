@@ -72,7 +72,12 @@ export const toggleCategory = async (categoryId,isActive) => {
         body: JSON.stringify({ isActive }),
     });
 };
-
+// Delete a category
+export const deleteCategory = async (categoryId) => {
+    return apiRequest(`/categories/${categoryId}`, {
+        method: "DELETE",
+    });
+};
 // Payment Method API
 export const getPaymentMethods = async (includeInactive = false) => {
     const params = new URLSearchParams({
@@ -240,3 +245,8 @@ export const updateSettings = async (settingsData) => {
         body: JSON.stringify(settingsData),
     });
 };
+export const changePassword = async (passwordData) =>
+    apiRequest("/auth/change-password", {
+        method: "PUT",
+        body: JSON.stringify(passwordData),
+    });

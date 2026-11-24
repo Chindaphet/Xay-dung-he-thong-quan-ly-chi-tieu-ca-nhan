@@ -1,4 +1,10 @@
 
+import {
+    TrendingUp,
+    TrendingDown,
+    Wallet,
+    Percent,
+} from "lucide-react";
 import useLanguage from "../../hooks/useLanguage";
 
 const formatVND = (value) => {
@@ -29,7 +35,7 @@ function SummaryCards({ summary }) {
             id: "income",
             title: t("dashboard.totalIncome"),
             amount: formatVND(totalIncome),
-            icon: "↗",
+            icon: TrendingUp,
             className: "income",
             description: t("summary.totalMoneyReceived"),
             status: "VND",
@@ -38,7 +44,7 @@ function SummaryCards({ summary }) {
             id: "expenses",
             title: t("dashboard.totalExpenses"),
             amount: formatVND(totalExpenses),
-            icon: "↘",
+            icon: TrendingDown,
             className: "expenses",
             description: t("summary.totalMoneySpent"),
             status: "VND",
@@ -47,7 +53,7 @@ function SummaryCards({ summary }) {
             id: "balance",
             title: t("summary.netBalance"),
             amount: formatVND(netBalance),
-            icon: "◈",
+            icon: Wallet,
             className: "balance",
             description: t("summary.incomeMinusExpenses"),
             status: "VND",
@@ -56,7 +62,7 @@ function SummaryCards({ summary }) {
             id: "savings",
             title: t("summary.savingsRate"),
             amount: `${savingsRate.toFixed(2)}%`,
-            icon: "%",
+            icon: Percent,
             className: "savings",
             description: t("summary.incomeSaved"),
             status: null,
@@ -77,7 +83,7 @@ function SummaryCards({ summary }) {
                         </div>
 
                         <div className="summary-card-icon">
-                            {card.icon}
+                            <card.icon size={24} strokeWidth={2} />
                         </div>
                     </div>
 

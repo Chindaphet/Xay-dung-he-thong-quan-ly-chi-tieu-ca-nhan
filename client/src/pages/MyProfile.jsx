@@ -1,6 +1,5 @@
 
 import useLanguage from "../hooks/useLanguage";
-import supportedLanguages from "../locales/languages";
 import { useEffect, useState } from "react";
 import "../styles/profile.css";
 import Header from "../components/layout/Header";
@@ -14,8 +13,10 @@ function MyProfile({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
-    const { language, changeLanguage, t } = useLanguage();
+    const { t } = useLanguage();
     const [profile, setProfile] = useState(user || null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -24,35 +25,44 @@ function MyProfile({
     const [validationErrors, setValidationErrors] = useState({});
     const [isEditing, setIsEditing] = useState(false);
 
-    const [formData, setFormData] = useState({full_name: "",email: "",});
+    const [formData, setFormData] = useState({
+        username: "",
+        full_name: "",
+        email: "",
+    });
     const [showEmail, setShowEmail] = useState(false);
     const [showUserId, setShowUserId] = useState(false);
+
     // Validate profile form data
-// Validate profile form data
-const validateProfile = () => {
-    const errors = {};
+    const validateProfile = () => {
+        const errors = {};
 
-    const fullName = formData.full_name.trim();
-    const email = formData.email.trim();
+        const username = formData.username.trim().toLowerCase();
+        const fullName = formData.full_name.trim();
+        const email = formData.email.trim();
 
-    if (!fullName) {
-        errors.full_name = t("profile.fullNameRequired");
-    } else if (fullName.length > 100) {
-        errors.full_name = t("profile.fullNameMax");
-    }
+        if (!username) {
+            errors.username = t("profile.usernameRequired");
+        } else if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+            errors.username = t("profile.usernameInvalid");
+        }
 
-    if (!email) {
-        errors.email = t("profile.emailRequired");
-    } else if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    ) {
-        errors.email = t("profile.emailInvalid");
-    }
+        if (!fullName) {
+            errors.full_name = t("profile.fullNameRequired");
+        } else if (fullName.length > 100) {
+            errors.full_name = t("profile.fullNameMax");
+        }
 
-    setValidationErrors(errors);
+        if (!email) {
+            errors.email = t("profile.emailRequired");
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errors.email = t("profile.emailInvalid");
+        }
 
-    return Object.keys(errors).length === 0;
-};
+        setValidationErrors(errors);
+
+        return Object.keys(errors).length === 0;
+    };
     const handleSaveProfile = async () => {
         const isValid = validateProfile();
         if (!isValid) {
@@ -64,6 +74,7 @@ const validateProfile = () => {
         setSuccess("");
 
         const updatedUser = await updateProfile({
+            username: formData.username.trim().toLowerCase(),
             full_name: formData.full_name.trim(),
             email: formData.email.trim(),
         });
@@ -71,15 +82,27 @@ const validateProfile = () => {
         setProfile(updatedUser);
 
         setFormData({
+            username: updatedUser.username || "",
             full_name: updatedUser.full_name || "",
             email: updatedUser.email || "",
         });
 
         setIsEditing(false);
         setSuccess(t("profile.updatedSuccessfully"));
-    } catch {
-        setError(t("profile.updateFailed"));
-    } finally {
+    } catch (error) {
+        if (error.status === 409) {
+            if (error.message === "Username is already taken.") {
+                setError(t("profile.usernameTaken"));
+            } else if (error.message === "Email is already in use.") {
+                setError(t("profile.emailAlreadyInUse"));
+            } else {
+                setError(t("profile.updateFailed"));
+            }
+        } else {
+            setError(error.message || t("profile.updateFailed"));
+        }
+    }
+    finally {
         setSaving(false);
     }
 };
@@ -101,9 +124,10 @@ const validateProfile = () => {
                 if (!cancelled) {
                     setProfile(currentUser);
                     setFormData({
-        full_name: currentUser?.full_name || "",
-        email: currentUser?.email || "",
-    });
+                        username: currentUser?.username || "",
+                        full_name: currentUser?.full_name || "",
+                        email: currentUser?.email || "",
+                    });
                 }
             } catch {
                 if (!cancelled) {
@@ -132,6 +156,8 @@ const validateProfile = () => {
                     user={profile || user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 
@@ -161,7 +187,8 @@ const validateProfile = () => {
     </p>
 )}
 
-        {/* Profile Overview */}
+
+{/* Profile Overview */}
 <div className="profile-overview-card">
     <div className="profile-avatar">
         {profile?.full_name
@@ -170,8 +197,8 @@ const validateProfile = () => {
     </div>
 
     <div className="profile-overview-info">
-        <h3>{profile?.full_name}</h3>
-        <p>@{profile?.username}</p>
+        <h3>{profile?.full_name || t("profile.notAvailable")}</h3>
+        <p>@{profile?.username || t("profile.notAvailable")}</p>
         <span>{t("profile.personalAccount")}</span>
     </div>
 
@@ -179,12 +206,24 @@ const validateProfile = () => {
         <button
             type="button"
             className="profile-edit-button"
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+                setFormData({
+                    username: profile?.username || "",
+                    full_name: profile?.full_name || "",
+                    email: profile?.email || "",
+                });
+                setValidationErrors({});
+                setError("");
+                setSuccess("");
+                setIsEditing(true);
+            }}
         >
-            ✎ {t("profile.editProfile")}
+            <i className="fas fa-pen"></i>
+            {t("profile.editProfile")}
         </button>
     )}
 </div>
+
 
 {isEditing && (
     <div className="profile-edit-actions">
@@ -202,6 +241,7 @@ const validateProfile = () => {
             className="profile-cancel-button"
             onClick={() => {
                 setFormData({
+                    username: profile?.username || "",
                     full_name: profile?.full_name || "",
                     email: profile?.email || "",
                 });
@@ -226,8 +266,8 @@ const validateProfile = () => {
     </label>
 
     <div className="profile-information-value">
-        {isEditing ? (
-            <>
+    {isEditing ? (
+        <div className="profile-input-wrapper">
             <input
                 type="text"
                 value={formData.full_name}
@@ -240,27 +280,52 @@ const validateProfile = () => {
                 placeholder={t("profile.enterFullName")}
                 maxLength={100}
             />
+
             {validationErrors.full_name && (
                 <small className="profile-validation-error">
                     {validationErrors.full_name}
-                    </small>
-                )}
-            </>
-        ) : (
-            <p>{profile?.full_name || t("profile.notAvailable")}</p>
+                </small>
             )}
-    </div> 
-</div>
-    <div className="profile-information-item">
-        <label>
-            <span className="profile-field-icon">@</span>
-            {t("profile.username")}
-        </label>
-        <div className="profile-information-value">
-            <p>{profile?.username || t("profile.notAvailable")}</p>
         </div>
-    </div>
+    ) : (
+        <p>{profile?.full_name || t("profile.notAvailable")}</p>
+    )}
+</div>
+</div>
+                <div className="profile-information-item">
+                <label>
+                    <span className="profile-field-icon">@</span>
+                    {t("profile.username")}
+                </label>
 
+                {isEditing ? (
+                    <div className="profile-input-wrapper">
+                        <input
+                            type="text"
+                            value={formData.username}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    username: e.target.value,
+                                })
+                            }
+                            placeholder={t("profile.enterUsername")}
+                            maxLength={30}
+                            autoComplete="username"
+                        />
+
+                        {validationErrors.username && (
+                            <span className="profile-validation-error">
+                                {validationErrors.username}
+                            </span>
+                        )}
+                    </div>
+                ) : (
+                    <div className="profile-information-value">
+                        <p>{profile?.username || t("profile.notAvailable")}</p>
+                    </div>
+                )}
+            </div>
     <div className="profile-information-item">
         <label>
             <span className="profile-field-icon">✉</span>
@@ -268,26 +333,27 @@ const validateProfile = () => {
         </label>
         <div className="profile-information-value">
             {isEditing ? (
-                <>
-                <input
-                type="email"
-                value={formData.email}
-                onChange={(event) =>
-                    setFormData({
-                        ...formData,
-                        email: event.target.value,
-                    })
-                }
-                placeholder={t("profile.enterEmail")}
-                maxLength={255}
-            />
-            {validationErrors.email && (
-                <small className="profile-validation-error">
-                    {validationErrors.email}
-                </small>
-            )}
-        </>
-        ) : (
+    <div className="profile-input-wrapper">
+        <input
+            type="email"
+            value={formData.email}
+            onChange={(event) =>
+                setFormData({
+                    ...formData,
+                    email: event.target.value,
+                })
+            }
+            placeholder={t("profile.enterEmail")}
+            maxLength={255}
+        />
+
+        {validationErrors.email && (
+            <small className="profile-validation-error">
+                {validationErrors.email}
+            </small>
+        )}
+    </div>
+) : (
             <>
     <p>
         {showEmail
@@ -328,32 +394,7 @@ const validateProfile = () => {
         )}
         </div>
     </div>
-
-    
-<div className="profile-information-item">
-    <label>
-        <span className="profile-field-icon">🌐</span>
-        {t("profile.preferredLanguage")}
-    </label>
-
-    <div className="profile-information-value">
-        <select
-            value={language}
-            onChange={(event) => {
-                changeLanguage(event.target.value);
-            }}
-        >
-            {supportedLanguages.map((item) => (
-                <option key={item.code} value={item.code}>
-                    {item.nativeName}
-                </option>
-            ))}
-        </select>
     </div>
-</div>
-
-</div>
-
         </div>
 
         {/* Account Information */}

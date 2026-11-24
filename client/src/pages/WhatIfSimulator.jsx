@@ -1,4 +1,13 @@
 
+import {
+    TrendingDown,
+    Wallet,
+    PiggyBank,
+    RotateCcw,
+    Play,
+    RefreshCw,
+    GitCompareArrows,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import useLanguage from "../hooks/useLanguage";
 import Header from "../components/layout/Header";
@@ -46,6 +55,8 @@ function WhatIfSimulator({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t, language } = useLanguage();
 
@@ -274,6 +285,8 @@ function WhatIfSimulator({
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <div className="what-if-simulator-content">
@@ -314,13 +327,13 @@ function WhatIfSimulator({
                     {!loading && error && (
                         <div className="simulator-error">
                             <p>{error}</p>
-
                             <button
                                 type="button"
                                 onClick={() =>
                                     setRetryCount((count) => count + 1)
                                 }
                             >
+                                <RefreshCw size={16} strokeWidth={2} />
                                 {t("whatIfSimulator.retry")}
                             </button>
                         </div>
@@ -332,9 +345,12 @@ function WhatIfSimulator({
                         {/* Expense Reduction Section */}
                         <section className="simulator-section">
                             <div className="simulator-section-heading">
-                                <div>
-                                    <h2>{t("whatIfSimulator.reduceExpenses")}</h2>
-                                    <p>{t("whatIfSimulator.reduceExpensesDescription")}</p>
+                                <div className="simulator-section-title">
+                                    <TrendingDown size={22} strokeWidth={2} />
+                                    <div>
+                                        <h2>{t("whatIfSimulator.reduceExpenses")}</h2>
+                                        <p>{t("whatIfSimulator.reduceExpensesDescription")}</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -395,14 +411,17 @@ function WhatIfSimulator({
                             </div>
                         </section>
 
-{/* Budget Adjustment Section */}
-<section className="simulator-section">
-    <div className="simulator-section-heading">
-        <div>
-            <h2>{t("whatIfSimulator.adjustBudget")}</h2>
-            <p>{t("whatIfSimulator.adjustBudgetDescription")}</p>
-        </div>
-    </div>
+                        {/* Budget Adjustment Section */}
+                        <section className="simulator-section">
+                            <div className="simulator-section-heading">
+                            <div className="simulator-section-title">
+                                <Wallet size={22} strokeWidth={2} />
+                                <div>
+                                    <h2>{t("whatIfSimulator.adjustBudget")}</h2>
+                                    <p>{t("whatIfSimulator.adjustBudgetDescription")}</p>
+                                </div>
+                            </div>
+                        </div>
 
     {!hasBudget ? (
         <p className="simulator-empty">
@@ -490,9 +509,12 @@ function WhatIfSimulator({
 {/* Monthly Savings Goal Section */}
 <section className="simulator-section">
     <div className="simulator-section-heading">
-        <div>
-            <h2>{t("whatIfSimulator.monthlySavings")}</h2>
-            <p>{t("whatIfSimulator.monthlySavingsDescription")}</p>
+        <div className="simulator-section-title">
+            <PiggyBank size={22} strokeWidth={2} />
+            <div>
+                <h2>{t("whatIfSimulator.monthlySavings")}</h2>
+                <p>{t("whatIfSimulator.monthlySavingsDescription")}</p>
+            </div>
         </div>
     </div>
 
@@ -527,6 +549,7 @@ function WhatIfSimulator({
         onClick={handleResetSimulation}
         disabled={simulating}
     >
+        <RotateCcw size={17} strokeWidth={2} />
         {t("whatIfSimulator.reset")}
     </button>
 
@@ -536,6 +559,7 @@ function WhatIfSimulator({
         onClick={handleRunSimulation}
         disabled={simulating}
     >
+        <Play size={17} strokeWidth={2} />
         {simulating
             ? t("whatIfSimulator.simulating")
             : t("whatIfSimulator.runSimulation")}
@@ -546,9 +570,12 @@ function WhatIfSimulator({
 {simulationResult && actual && simulation && (
     <section className="simulator-section simulator-results">
         <div className="simulator-section-heading">
-            <div>
-                <h2>{t("whatIfSimulator.compareResults")}</h2>
-                <p>{t("whatIfSimulator.compareResultsDescription")}</p>
+            <div className="simulator-section-title">
+                <GitCompareArrows size={22} strokeWidth={2} />
+                <div>
+                    <h2>{t("whatIfSimulator.compareResults")}</h2>
+                    <p>{t("whatIfSimulator.compareResultsDescription")}</p>
+                </div>
             </div>
         </div>
 

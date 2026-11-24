@@ -72,7 +72,6 @@ const translation = {
         noRecommendations: "ไม่มีคำแนะนำในขณะนี้",
     },
 
-
     transactions: {
         title: "รายการธุรกรรม",
         addTransaction: "เพิ่มรายการธุรกรรม",

@@ -1,4 +1,10 @@
 
+import {
+    ChevronLeft,
+    ChevronRight,
+    Plus,
+    AlertTriangle,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import useLanguage from "../hooks/useLanguage";
 import Header from "../components/layout/Header";
@@ -13,15 +19,36 @@ import {
 } from "../services/api";
 import "../styles/Budget.css";
 
-function Budget({user,isSidebarOpen,onToggleSidebar,}) {
+function Budget({
+    user,
+    isSidebarOpen,
+    onToggleSidebar,
+    onNavigate,
+    onLogout,
+}) {
     const { t, language } = useLanguage();
-
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const now = new Date();
         return `${now.getFullYear()}-${String(
             now.getMonth() + 1
         ).padStart(2, "0")}`;
     });
+    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+    const [pickerYear, setPickerYear] = useState(() => new Date().getFullYear());
+
+    const openMonthPicker = () => {
+        setPickerYear(Number(selectedMonth.split("-")[0]));
+        setIsMonthPickerOpen(true);
+    };
+    const selectMonth = (monthNumber) => {
+        const newMonth = `${pickerYear}-${String(monthNumber).padStart(2, "0")}`;
+
+        setSelectedMonth(newMonth);
+        setIsMonthPickerOpen(false);
+    };
+    const changePickerYear = (offset) => {
+        setPickerYear((prev) => prev + offset);
+    };
 
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -63,10 +90,8 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
             }
         ).format(Number(value) || 0);
     };
-
     const formatMonth = (month) => {
         if (!month) return "";
-
         const [year, monthNumber] = month.split("-");
 
         return new Intl.DateTimeFormat(
@@ -77,18 +102,22 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
             }
         ).format(new Date(Number(year), Number(monthNumber) - 1, 1));
     };
-
+    const changeMonth = (offset) => {
+        const [year, month] = selectedMonth.split("-").map(Number);
+        const date = new Date(year, month - 1 + offset, 1);
+        const newMonth = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+        ).padStart(2, "0")}`;
+        setSelectedMonth(newMonth);
+    };
     useEffect(() => {
         let cancelled = false;
-
         const loadBudget = async () => {
             try {
                 setLoading(true);
                 setError("");
-
                 const response = await getBudgetOverview(selectedMonth);
                 console.log("CATEGORY BUDGET API:", response.data.categoryBudgets);
-
                 if (!cancelled) {
                     setBudgetData(response.data);
                 }
@@ -106,7 +135,6 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
         };
 
         loadBudget();
-
         return () => {
             cancelled = true;
         };
@@ -114,18 +142,14 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
     // Load expense categories
     useEffect(() => {
         let cancelled = false;
-
         const loadCategories = async () => {
             try {
                 setLoadingCategories(true);
-
                 const response = await getCategories();
-
                 if (!cancelled) {
                     const expenseCategories = (response.data || []).filter(
                         (category) => category.type === "expense"
                     );
-
                     setCategories(expenseCategories);
                 }
             } catch (err) {
@@ -142,7 +166,6 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
         };
 
         loadCategories();
-
         return () => {
             cancelled = true;
         };
@@ -174,23 +197,18 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
 
     const handleCreateBudget = async (event) => {
     event.preventDefault();
-
     const amount = Number(budgetAmount);
-
     if (!Number.isFinite(amount) || amount <= 0) {
         setFormError(t("budget.amountRequired"));
         return;
     }
-
     try {
         setSavingBudget(true);
         setFormError("");
-
         await createBudget({
             month: selectedMonth,
             totalAmount: amount,
         });
-
         setBudgetAmount("");
         setReloadKey((prev) => prev + 1);
     } catch (err) {
@@ -201,7 +219,6 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
     };
     const handleUpdateBudget = async (event) => {
     event.preventDefault();
-
     const amount = Number(editingBudgetAmount);
 
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -212,11 +229,9 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
     try {
         setUpdatingBudget(true);
         setEditBudgetError("");
-
         await updateBudget(budget.budgetId, {
             totalAmount: amount,
         });
-
         setIsEditingBudget(false);
         setEditingBudgetAmount("");
         setReloadKey((prev) => prev + 1);
@@ -266,9 +281,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
     };
     const handleUpdateCategoryBudget = async (event, categoryId) => {
         event.preventDefault();
-
         const amount = Number(editingCategoryBudgetAmount);
-
         if (!Number.isFinite(amount) || amount <= 0) {
             setCategoryBudgetError(t("budget.amountRequired"));
             return;
@@ -337,6 +350,8 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
                 <div className="dashboard-content budget-content">
                     <div className="budget-page-heading">
@@ -346,19 +361,84 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                         </div>
 
                         <div className="budget-month-picker">
-                            <label htmlFor="budget-month">
-                                {t("budget.selectMonth")}
-                            </label>
+                        <label>{t("budget.selectMonth")}</label>
 
-                            <input
-                                id="budget-month"
-                                type="month"
-                                value={selectedMonth}
-                                onChange={(event) =>
-                                    setSelectedMonth(event.target.value)
-                                }
-                            />
+                        <div className="budget-month-controls">
+                            <button
+                                type="button"
+                                className="budget-month-nav"
+                                onClick={() => changeMonth(-1)}
+                                aria-label={t("budget.previousMonth")}
+                            >
+                                <ChevronLeft size={18} strokeWidth={2} />
+                            </button>
+
+                            <button
+    type="button"
+    className="budget-month-value"
+    onClick={openMonthPicker}
+    aria-expanded={isMonthPickerOpen}
+    aria-label={t("budget.chooseMonth")}
+>
+    {formatMonth(selectedMonth)}
+</button>
+
+                            <button
+                                type="button"
+                                className="budget-month-nav"
+                                onClick={() => changeMonth(1)}
+                                aria-label={t("budget.nextMonth")}
+                            >
+                                <ChevronRight size={18} strokeWidth={2} />
+                            </button>
                         </div>
+                        {isMonthPickerOpen && (
+    <div className="budget-month-dropdown">
+        <div className="budget-month-dropdown-header">
+            <button
+                type="button"
+                onClick={() => changePickerYear(-1)}
+            >
+                <ChevronLeft size={16} strokeWidth={2} />
+            </button>
+
+            <strong>{pickerYear}</strong>
+
+            <button
+                type="button"
+                onClick={() => changePickerYear(1)}
+            >
+                <ChevronRight size={16} strokeWidth={2} />
+            </button>
+        </div>
+
+        <div className="budget-month-grid">
+            {Array.from({ length: 12 }, (_, index) => {
+                const monthNumber = index + 1;
+                const monthLabel = new Intl.DateTimeFormat(
+                    language === "vi" ? "vi-VN" : "en-US",
+                    { month: "short" }
+                ).format(new Date(pickerYear, index, 1));
+
+                const isSelected =
+                    selectedMonth ===
+                    `${pickerYear}-${String(monthNumber).padStart(2, "0")}`;
+
+                return (
+                    <button
+                        key={monthNumber}
+                        type="button"
+                        className={isSelected ? "active" : ""}
+                        onClick={() => selectMonth(monthNumber)}
+                    >
+                        {monthLabel}
+                    </button>
+                );
+            })}
+        </div>
+    </div>
+)}
+                    </div>
                     </div>
 
                     {loading ? (
@@ -499,7 +579,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                     setEditBudgetError("");
                 }}
             >
-                Cancel
+                {t("common.cancel")}
             </button>
         </div>
     </form>
@@ -519,7 +599,8 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                 setIsAddingCategoryBudget(true);
             }}
         >
-            + {t("budget.addCategoryBudget")}
+            <Plus size={18} strokeWidth={2} />
+            {t("budget.addCategoryBudget")}
         </button>
     </div>
 </div>
@@ -545,8 +626,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                                         <h3>{t("budget.categoryBudgets")}</h3>
                                     </div>
                                     <span className="budget-category-count">
-                                        Categories: {categoryBudgets.length} 
-                                    </span>
+                                        {t("budget.categories")}: {categoryBudgets.length}</span>
                                 </div>
                                 {isAddingCategoryBudget && (
                                 <form
@@ -625,7 +705,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                                                 setCategoryBudgetError("");
                                             }}
                                         >
-                                            Cancel
+                                            {t("common.cancel")}
                                         </button>
                                     </div>
                                 </form>
@@ -689,7 +769,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                 setCategoryBudgetError("");
             }}
         >
-            Cancel
+            {t("common.cancel")}
         </button>
     </form>
 )}
@@ -714,7 +794,8 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                                                     </p>
                                                     {Number(item.remainingAmount) < 0 && (
                                                     <p className="budget-category-warning">
-                                                        ⚠ Over budget by:{" "}
+                                                        <AlertTriangle size={16} strokeWidth={2} />
+                                                        {t("budget.overBudgetBy")}:{" "}
                                                         {formatMoney(Math.abs(Number(item.remainingAmount)))}
                                                     </p>
                                                 )}
@@ -765,7 +846,7 @@ function Budget({user,isSidebarOpen,onToggleSidebar,}) {
                             >
                                 {deletingCategoryBudgetId === item.categoryId
                                     ? t("budget.loading")
-                                    : "Delete"}
+                                    : t("common.delete")}
                             </button>
                         </div>
                     </div>

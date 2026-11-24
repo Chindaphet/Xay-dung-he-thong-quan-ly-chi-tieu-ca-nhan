@@ -125,3 +125,20 @@ h4 {
     font-size: 13px;
   }
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #171522;
+  --surface: #211e2e;
+
+  --text-primary: #f1eef8;
+  --text-secondary: #b4aec5;
+  --text-muted: #898397;
+
+  --border: #393447;
+
+  --primary-light: #352b4e;
+
+  --shadow:
+    0 4px 20px rgba(0, 0, 0, 0.2);
+}

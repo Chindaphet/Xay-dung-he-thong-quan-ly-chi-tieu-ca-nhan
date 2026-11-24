@@ -63,6 +63,7 @@ const updateMe = async (req, res, next) => {
         const user = await authService.updateProfile(
             req.user.user_id,
             {
+                username: req.body.username,
                 fullName: req.body.full_name,
                 email: req.body.email,
             }
@@ -150,6 +151,27 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+// Change password controller
+const changePassword = async (req, res, next) => {
+    try {
+        const result = await authService.changePassword(
+            req.user.user_id,
+            {
+                currentPassword: req.body.currentPassword,
+                newPassword: req.body.newPassword,
+                confirmPassword: req.body.confirmPassword,
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
@@ -159,4 +181,5 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
+    changePassword,
 };

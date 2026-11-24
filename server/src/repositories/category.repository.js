@@ -175,7 +175,23 @@ const toggleCategory = async (categoryId,userId,isActive) => {
 
     return rows[0] || null;
 };
+// Delete a category
+const deleteCategory = async (categoryId, userId) => {
+    const query = `
+        DELETE FROM categories
+        WHERE category_id = $1
+          AND user_id = $2
+          AND is_default = FALSE
+        RETURNING category_id;
+    `;
 
+    const { rows } = await pool.query(query, [
+        categoryId,
+        userId,
+    ]);
+
+    return rows[0] || null;
+};
 module.exports = {
     findActiveByIdAndUserId,
     createCategory,
@@ -183,4 +199,5 @@ module.exports = {
     findByIdAndUserId,
     updateCategory,
     toggleCategory,
+    deleteCategory,
 };

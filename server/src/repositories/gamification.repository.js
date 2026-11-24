@@ -149,12 +149,7 @@ const addPoints = async ({
             SET
                 total_points = total_points + $1,
                 current_level = FLOOR(
-                    (
-                        SQRT(
-                            1 + (8 * (total_points + $1)::NUMERIC / 100)
-                        ) - 1
-                    ) / 2
-                ) + 1,
+                    (SQRT(1 + (8 * (total_points + $1)::NUMERIC / 100)) - 1) / 2) + 1,
                 updated_at = CURRENT_TIMESTAMP
             WHERE user_id = $2
             RETURNING
@@ -165,6 +160,8 @@ const addPoints = async ({
             points,
             userId,
         ]);
+        if (updateResult.rowCount !== 1) {
+            throw new Error("Failed to update gamification points.");}
         await client.query("COMMIT");
         transactionStarted = false;
         return {
@@ -187,48 +184,18 @@ const addPoints = async ({
     }
 };
 
- // Find and lock pending gamification events
-const findPendingGamificationEvents = async (limit = 10) => {
-    const client = await pool.connect();
-    try {
-        await client.query("BEGIN");
-        const query = `
-            SELECT
-                event_id,
-                user_id,
-                event_type,
-                reference_id,
-                event_key,
-                payload,
-                status,
-                attempts,
-                available_at,
-                created_at
-            FROM gamification_events
-            WHERE status IN ('pending', 'failed')
-              AND available_at <= CURRENT_TIMESTAMP
-            ORDER BY created_at ASC
-            LIMIT $1
-            FOR UPDATE SKIP LOCKED;
-        `;
-
-        const { rows } = await client.query(query, [limit]);
-        await client.query("COMMIT");
-        return rows;
-    } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-    } finally {
-        client.release();
-    }
-};
-
-// Claim pending events while preserving event order per user
+// Claim pending events with an ownership lease
 const claimPendingGamificationEvents = async (limit = 10) => {
+    if (!Number.isSafeInteger(limit) || limit <= 0 || limit > 100) {
+        throw new Error("Invalid event batch limit.");
+    }
+
     const client = await pool.connect();
+    let transactionStarted = false;
 
     try {
         await client.query("BEGIN");
+        transactionStarted = true;
 
         const query = `
             WITH pending_events AS (
@@ -236,7 +203,6 @@ const claimPendingGamificationEvents = async (limit = 10) => {
                 FROM gamification_events AS candidate
                 WHERE candidate.status = 'pending'
                   AND candidate.available_at <= CURRENT_TIMESTAMP
-
                   AND NOT EXISTS (
                       SELECT 1
                       FROM gamification_events AS older
@@ -250,25 +216,22 @@ const claimPendingGamificationEvents = async (limit = 10) => {
                             candidate.event_id
                         )
                   )
-
                 ORDER BY
                     candidate.created_at ASC,
                     candidate.event_id ASC
-
                 LIMIT $1
                 FOR UPDATE OF candidate SKIP LOCKED
             )
-
             UPDATE gamification_events AS events
             SET
                 status = 'processing',
                 attempts = events.attempts + 1,
+                lease_token = gen_random_uuid(),
+                lease_expires_at =
+                    CURRENT_TIMESTAMP + INTERVAL '10 minutes',
                 updated_at = CURRENT_TIMESTAMP
-
             FROM pending_events
-
             WHERE events.event_id = pending_events.event_id
-
             RETURNING
                 events.event_id,
                 events.user_id,
@@ -277,58 +240,151 @@ const claimPendingGamificationEvents = async (limit = 10) => {
                 events.event_key,
                 events.payload,
                 events.attempts,
-                events.created_at;
+                events.created_at,
+                events.lease_token,
+                events.lease_expires_at;
         `;
 
         const { rows } = await client.query(query, [limit]);
 
         await client.query("COMMIT");
+        transactionStarted = false;
 
         return rows;
     } catch (error) {
-        await client.query("ROLLBACK");
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                error.rollbackError = rollbackError;
+            }
+        }
+
         throw error;
     } finally {
         client.release();
     }
 };
+// Renew an active event ownership lease
+const renewGamificationEventLease = async (
+    eventId,
+    leaseToken,
+    leaseMinutes = 10
+) => {
+    if (
+        typeof eventId !== "string" ||
+        typeof leaseToken !== "string"
+    ) {
+        throw new Error("Invalid event ID or lease token.");
+    }
 
- // Mark a gamification event as processed
-const markGamificationEventProcessed = async (eventId) => {
+    if (
+        !Number.isSafeInteger(leaseMinutes) ||
+        leaseMinutes <= 0 ||
+        leaseMinutes > 1440
+    ) {
+        throw new Error("Invalid lease duration.");
+    }
+
+    const query = `
+        UPDATE gamification_events
+        SET
+            lease_expires_at =
+                CURRENT_TIMESTAMP + ($3 * INTERVAL '1 minute'),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE event_id = $1
+          AND status = 'processing'
+          AND lease_token = $2
+          AND lease_expires_at > CURRENT_TIMESTAMP
+        RETURNING
+            event_id,
+            lease_expires_at;
+    `;
+
+    const { rows } = await pool.query(query, [
+        eventId,
+        leaseToken,
+        leaseMinutes,
+    ]);
+
+    return rows[0] || null;
+};
+// Mark a gamification event as processed by its lease owner
+const markGamificationEventProcessed = async (
+    eventId,
+    leaseToken
+) => {
+    if (
+        typeof eventId !== "string" ||
+        typeof leaseToken !== "string"
+    ) {
+        throw new Error("Invalid event ID or lease token.");
+    }
+
     const query = `
         UPDATE gamification_events
         SET
             status = 'processed',
             processed_at = CURRENT_TIMESTAMP,
             last_error = NULL,
+            lease_token = NULL,
+            lease_expires_at = NULL,
             updated_at = CURRENT_TIMESTAMP
         WHERE event_id = $1
           AND status = 'processing'
+          AND lease_token = $2
+          AND lease_expires_at > CURRENT_TIMESTAMP
         RETURNING
             event_id,
             status,
             processed_at;
     `;
 
-    const { rows } = await pool.query(query, [eventId]);
+    const { rows } = await pool.query(query, [
+        eventId,
+        leaseToken,
+    ]);
+
     return rows[0] || null;
 };
 
- // Mark a gamification event as failed and schedule retry
+// Mark a gamification event as failed by its lease owner
 const markGamificationEventFailed = async (
     eventId,
+    leaseToken,
     errorMessage,
     maxAttempts = 5
 ) => {
+    if (
+        typeof eventId !== "string" ||
+        typeof leaseToken !== "string"
+    ) {
+        throw new Error("Invalid event ID or lease token.");
+    }
+
+    if (
+        typeof errorMessage !== "string" ||
+        errorMessage.trim().length === 0
+    ) {
+        throw new Error("Invalid error message.");
+    }
+
+    if (
+        !Number.isSafeInteger(maxAttempts) ||
+        maxAttempts <= 0
+    ) {
+        throw new Error("Invalid maximum attempts.");
+    }
+
     const query = `
         UPDATE gamification_events
         SET
             status = CASE
-                WHEN attempts >= $3 THEN 'failed'
+                WHEN attempts >= $4 THEN 'failed'
                 ELSE 'pending'
             END,
             available_at = CASE
-                WHEN attempts >= $3 THEN available_at
+                WHEN attempts >= $4 THEN available_at
                 ELSE CURRENT_TIMESTAMP
                     + (
                         LEAST(
@@ -337,10 +393,14 @@ const markGamificationEventFailed = async (
                         ) * INTERVAL '1 minute'
                     )
             END,
-            last_error = $2,
+            last_error = $3,
+            lease_token = NULL,
+            lease_expires_at = NULL,
             updated_at = CURRENT_TIMESTAMP
         WHERE event_id = $1
           AND status = 'processing'
+          AND lease_token = $2
+          AND lease_expires_at > CURRENT_TIMESTAMP
         RETURNING
             event_id,
             status,
@@ -351,15 +411,24 @@ const markGamificationEventFailed = async (
 
     const { rows } = await pool.query(query, [
         eventId,
-        String(errorMessage).slice(0, 5000),
+        leaseToken,
+        errorMessage.slice(0, 5000),
         maxAttempts,
     ]);
 
     return rows[0] || null;
 };
 
- // Recover events that were left processing after a server interruption
+// Recover events whose ownership leases have expired
 const recoverStaleGamificationEvents = async (staleMinutes = 10) => {
+    if (
+        !Number.isSafeInteger(staleMinutes) ||
+        staleMinutes <= 0 ||
+        staleMinutes > 1440
+    ) {
+        throw new Error("Invalid stale event timeout.");
+    }
+
     const query = `
         UPDATE gamification_events
         SET
@@ -368,29 +437,36 @@ const recoverStaleGamificationEvents = async (staleMinutes = 10) => {
                 ELSE 'pending'
             END,
             available_at = CURRENT_TIMESTAMP,
-            last_error = 'Recovered after processing timeout.',
+            last_error = 'Recovered after processing lease expired.',
+            lease_token = NULL,
+            lease_expires_at = NULL,
             updated_at = CURRENT_TIMESTAMP
         WHERE status = 'processing'
-          AND updated_at <= CURRENT_TIMESTAMP
-              - ($1 * INTERVAL '1 minute')
+          AND (
+              lease_expires_at <= CURRENT_TIMESTAMP
+              OR (
+                  lease_expires_at IS NULL
+                  AND updated_at <= CURRENT_TIMESTAMP
+                      - ($1 * INTERVAL '1 minute')
+              )
+          )
         RETURNING
             event_id,
             status,
             attempts,
+            lease_token,
+            lease_expires_at,
             updated_at;
     `;
 
     const { rows } = await pool.query(query, [staleMinutes]);
-
     return rows;
 };
 
 const calculateLevel = (totalPoints) => {
     if (totalPoints < 0) return 1;
-
     return Math.floor(
-        (Math.sqrt(1 + (8 * totalPoints / 100)) - 1) / 2
-    ) + 1;
+        (Math.sqrt(1 + (8 * totalPoints / 100)) - 1) / 2) + 1;
 };
 
 // Update user's level based on total points
@@ -399,8 +475,7 @@ const updateUserLevel = async (userId) => {
         UPDATE user_gamification
         SET
             current_level = FLOOR(
-                (SQRT(1 + (8 * total_points::NUMERIC / 100)) - 1) / 2
-            ) + 1,
+                (SQRT(1 + (8 * total_points::NUMERIC / 100)) - 1) / 2) + 1,
             updated_at = CURRENT_TIMESTAMP
         WHERE user_id = $1
         RETURNING
@@ -411,113 +486,6 @@ const updateUserLevel = async (userId) => {
     const { rows } = await pool.query(query, [userId]);
     return rows[0] || null;
 };
-
-const updateUserStreak = async (userId, activityDate) => {
-    const client = await pool.connect();
-    try {
-        await client.query("BEGIN");
-
-        // Ensure the user's gamification profile exists
-        await client.query(
-            `
-                INSERT INTO user_gamification (user_id)
-                VALUES ($1)
-                ON CONFLICT (user_id) DO NOTHING;
-            `,
-            [userId]
-        );
-
-        // Lock the profile to prevent concurrent streak updates
-        const profileResult = await client.query(
-            `
-                SELECT
-                    current_streak,
-                    longest_streak,
-                    last_activity_date
-                FROM user_gamification
-                WHERE user_id = $1
-                FOR UPDATE;
-            `,
-            [userId]
-        );
-
-        const profile = profileResult.rows[0];
-        const currentDate = new Date(`${activityDate}T00:00:00Z`);
-        if (Number.isNaN(currentDate.getTime()) ||
-            currentDate.toISOString().slice(0, 10) !== activityDate) {
-            throw new Error("Invalid activity date.");
-        }
-
-        const previousDate = profile.last_activity_date
-            ? new Date(profile.last_activity_date).toISOString().slice(0, 10)
-            : null;
-
-        let currentStreak = profile.current_streak;
-        let longestStreak = profile.longest_streak;
-        let streakExtended = false;
-
-        if (!previousDate) {
-            currentStreak = 1;
-        } else if (activityDate > previousDate) {
-            const expectedPreviousDate = new Date(currentDate);
-            expectedPreviousDate.setUTCDate(
-                expectedPreviousDate.getUTCDate() - 1
-            );
-
-            const expectedDate = expectedPreviousDate
-                .toISOString()
-                .slice(0, 10);
-
-            if (previousDate === expectedDate) {
-                currentStreak += 1;
-                streakExtended = true;
-            } else {
-                currentStreak = 1;
-            }
-        }
-
-        longestStreak = Math.max(longestStreak, currentStreak);
-
-        const lastActivityDate =
-            !previousDate || activityDate > previousDate
-                ? activityDate
-                : previousDate;
-
-        const updateResult = await client.query(
-            `
-                UPDATE user_gamification
-                SET
-                    current_streak = $1,
-                    longest_streak = $2,
-                    last_activity_date = $3::DATE,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE user_id = $4
-                RETURNING
-                    current_streak,
-                    longest_streak,
-                    last_activity_date;
-            `,
-            [
-                currentStreak,
-                longestStreak,
-                lastActivityDate,
-                userId,
-            ]
-        );
-
-        await client.query("COMMIT");
-        return {
-            ...updateResult.rows[0],
-            streakExtended,
-        };
-    } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-    } finally {
-        client.release();
-    }
-};
-
 
 const findAllAchievementsByUserId = async (userId) => {
     const query = `
@@ -570,33 +538,6 @@ const findUnlockedAchievementsByUserId = async (userId) => {
     const { rows } = await pool.query(query, [userId]);
 
     return rows;
-};
-
-const unlockAchievement = async (userId, achievementId) => {
-    const query = `
-        INSERT INTO user_achievements (
-            user_id,
-            achievement_id
-        )
-        SELECT $1, achievement_id
-        FROM achievements
-        WHERE achievement_id = $2
-          AND is_active = TRUE
-        ON CONFLICT (user_id, achievement_id)
-        DO NOTHING
-        RETURNING
-            user_achievement_id,
-            user_id,
-            achievement_id,
-            unlocked_at;
-    `;
-
-    const { rows } = await pool.query(query, [
-        userId,
-        achievementId,
-    ]);
-
-    return rows[0] || null;
 };
 
 const findAllChallengesByUserId = async (userId) => {
@@ -702,66 +643,6 @@ const joinChallenge = async (userId, challengeId) => {
     return rows[0] || null;
 };
 
-const updateChallengeProgress = async (
-    userId,
-    challengeId,
-    progressAmount = 1
-) => {
-    const query = `
-        UPDATE user_challenges AS uc
-        SET
-            current_progress = LEAST(
-                uc.current_progress + $3,
-                c.requirement_value
-            ),
-
-            status = CASE
-                WHEN uc.current_progress + $3 >= c.requirement_value
-                    THEN 'completed'
-                ELSE 'in_progress'
-            END,
-
-            completed_at = CASE
-                WHEN uc.current_progress + $3 >= c.requirement_value
-                    THEN CURRENT_TIMESTAMP
-                ELSE NULL
-            END
-
-        FROM challenges AS c
-
-        WHERE uc.challenge_id = c.challenge_id
-          AND uc.user_id = $1
-          AND uc.challenge_id = $2
-          AND uc.status = 'in_progress'
-          AND c.is_active = TRUE
-          AND (
-                c.start_date IS NULL
-                OR c.start_date <= CURRENT_DATE
-          )
-          AND (
-              c.end_date IS NULL
-              OR c.end_date >= CURRENT_DATE
-          )
-
-        RETURNING
-            uc.user_challenge_id,
-            uc.user_id,
-            uc.challenge_id,
-            uc.current_progress,
-            uc.status,
-            uc.started_at,
-            uc.completed_at;
-    `;
-
-    const { rows } = await pool.query(query, [
-        userId,
-        challengeId,
-        progressAmount,
-    ]);
-
-    return rows[0] || null;
-};
-
 // Get transaction statistics for achievement requirements
 const getTransactionStats = async (userId) => {
     const query = `
@@ -785,8 +666,10 @@ const unlockAchievementAndAwardPoints = async (
     userId,
     achievementId) => {
     const client = await pool.connect();
+    let transactionStarted = false;
     try {
         await client.query("BEGIN");
+        transactionStarted = true;
         const unlockQuery = `
             INSERT INTO user_achievements (
                 user_id,
@@ -812,6 +695,7 @@ const unlockAchievementAndAwardPoints = async (
 
         if (unlockResult.rows.length === 0) {
             await client.query("ROLLBACK");
+            transactionStarted = false;
             return null;
         }
 
@@ -826,6 +710,8 @@ const unlockAchievementAndAwardPoints = async (
         ]);
 
         const achievement = rewardResult.rows[0];
+        if (!achievement) {
+            throw new Error("Achievement reward details not found.");}
         const points = achievement.points_reward;
 
         await client.query(
@@ -864,35 +750,39 @@ const unlockAchievementAndAwardPoints = async (
             );
 
             if (pointLogResult.rowCount > 0) {
-                await client.query(
+                const pointsUpdateResult = await client.query(
                     `
                         UPDATE user_gamification
                         SET
                             total_points = total_points + $1,
                             current_level = FLOOR(
-                                (
-                                    SQRT(
-                                        1 + (8 * (total_points + $1)::NUMERIC / 100)
-                                    ) - 1
-                                ) / 2
-                            ) + 1,
+                                (SQRT(1 + (8 * (total_points + $1)::NUMERIC / 100)) - 1) / 2) + 1,
                             updated_at = CURRENT_TIMESTAMP
                         WHERE user_id = $2;
                     `,
                     [points, userId]
                 );
+                if (pointsUpdateResult.rowCount !== 1) {
+                    throw new Error("Failed to update achievement reward points.");}
             }
         }
 
         await client.query("COMMIT");
+        transactionStarted = false;
         return {
             ...unlockResult.rows[0],
             name: achievement.name,
             points_reward: points,
         };
     } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
+            if (transactionStarted) {
+                try {
+                    await client.query("ROLLBACK");
+                } catch (rollbackError) {
+                    error.rollbackError = rollbackError;
+                }
+            }
+            throw error;
     } finally {
         client.release();
     }
@@ -906,10 +796,16 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
         transactionStarted = true;
         // Validate activity date.
         const dateValidation = await client.query(
-            `SELECT
-                $1::text ~ '^\\d{4}-\\d{2}-\\d{2}$'
-                AND TO_CHAR($1::date, 'YYYY-MM-DD') = $1::text
-                AS is_valid`,
+            `SELECT CASE
+                WHEN $1::text ~ '^\\d{4}-\\d{2}-\\d{2}$'
+                THEN
+                    CASE
+                        WHEN pg_input_is_valid($1::text, 'date')
+                        THEN TO_CHAR($1::date, 'YYYY-MM-DD') = $1::text
+                        ELSE FALSE
+                    END
+                ELSE FALSE
+            END AS is_valid`,
             [activityDate]
         );
 
@@ -938,7 +834,9 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
         );
 
         const profile = profileResult.rows[0];
-
+        if (!profile) {
+            throw new Error("Gamification profile not found.");
+        }
         const dateResult = await client.query(
             `SELECT
                 $1::date > $2::date AS is_newer,
@@ -948,11 +846,9 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
                 profile.last_activity_date || activityDate,
             ]
         );
-
         let currentStreak = profile.current_streak;
         let longestStreak = profile.longest_streak;
         let streakExtended = false;
-
         if (!profile.last_activity_date) {
             currentStreak = 1;
         } else if (dateResult.rows[0].is_newer) {
@@ -963,17 +859,14 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
                 currentStreak = 1;
             }
         }
-
         const shouldUpdateDate =
             !profile.last_activity_date ||
             dateResult.rows[0].is_newer;
-
         if (shouldUpdateDate) {
             longestStreak = Math.max(
                 longestStreak,
                 currentStreak
             );
-
             await client.query(
                 `UPDATE user_gamification
                  SET
@@ -992,11 +885,9 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
         }
 
         let bonusAwarded = false;
-
         if (streakExtended) {
             const idempotencyKey =
                 `streak:${userId}:${activityDate}`;
-
             const logResult = await client.query(
                 `INSERT INTO gamification_point_logs (
                     user_id,
@@ -1014,25 +905,20 @@ const updateStreakAndAwardBonus = async (userId, activityDate) => {
                     "Consecutive daily activity bonus",
                 ]
             );
-
             if (logResult.rowCount > 0) {
-                await client.query(
+                const pointsUpdateResult = await client.query(
                     `UPDATE user_gamification
                      SET
                         total_points = total_points + 15,
                         current_level = FLOOR(
-                            (
-                                SQRT(
-                                    1 + (
-                                        8 * (total_points + 15)::NUMERIC / 100
-                                    )
-                                ) - 1
-                            ) / 2
-                        ) + 1,
+                            (SQRT(1 + (8 * (total_points + 15)::NUMERIC / 100)) - 1) / 2) + 1,
                         updated_at = CURRENT_TIMESTAMP
                      WHERE user_id = $1`,
                     [userId]
                 );
+                if (pointsUpdateResult.rowCount !== 1) {
+                    throw new Error("Failed to update streak bonus points.");
+                }
                 bonusAwarded = true;
             }
         }
@@ -1070,9 +956,20 @@ const processChallengeEvent = async (
     }
 
     const client = await pool.connect();
+    let transactionStarted = false;
     try {
         await client.query("BEGIN");
-
+        transactionStarted = true;
+        // Ensure the user's gamification profile exists.
+        await client.query(
+            `
+                INSERT INTO user_gamification (user_id)
+                VALUES ($1)
+                ON CONFLICT (user_id)
+                DO NOTHING;
+            `,
+            [userId]
+        );
         // Find active challenges joined by the user.
         const challengeQuery = `
             SELECT
@@ -1098,14 +995,11 @@ const processChallengeEvent = async (
               )
             FOR UPDATE OF uc;
         `;
-
         const { rows: challenges } = await client.query(
             challengeQuery,
             [userId]
         );
-
         const results = [];
-
         for (const challenge of challenges) {
             // Record this event once for this challenge.
             const eventResult = await client.query(
@@ -1126,21 +1020,17 @@ const processChallengeEvent = async (
                     progressAmount,
                 ]
             );
-
             // Skip duplicate events.
             if (eventResult.rowCount === 0) {
                 continue;
             }
-
             const newProgress = Math.min(
                 challenge.current_progress + progressAmount,
                 challenge.requirement_value
             );
-
             const isCompleted =
                 newProgress >= challenge.requirement_value;
-
-            await client.query(
+            const progressUpdateResult = await client.query(
                 `
                     UPDATE user_challenges
                     SET
@@ -1159,12 +1049,15 @@ const processChallengeEvent = async (
                     challenge.user_challenge_id,
                 ]
             );
-
+            if (progressUpdateResult.rowCount !== 1) {
+                    throw new Error("Failed to update challenge progress.");
+                }
+            // Track the points actually awarded.
+            let pointsAwarded = 0;
             // Award challenge reward only when completed.
             if (isCompleted && challenge.points_reward > 0) {
                 const rewardKey =
                     `challenge:${challenge.user_challenge_id}`;
-
                 const rewardResult = await client.query(
                     `
                         INSERT INTO gamification_point_logs (
@@ -1188,49 +1081,47 @@ const processChallengeEvent = async (
                         `Completed challenge: ${challenge.name}`,
                     ]
                 );
-
                 if (rewardResult.rowCount > 0) {
-                    await client.query(
+                    const pointsUpdateResult = await client.query(
                         `
                             UPDATE user_gamification
                             SET
                                 total_points = total_points + $1::INTEGER,
                                 current_level = FLOOR(
-                                    (
-                                        SQRT(
-                                            1 + (
-                                                8 * (
-                                                    total_points + $1::INTEGER
-                                                )::NUMERIC / 100
-                                            )
-                                        ) - 1
-                                    ) / 2
-                                ) + 1,
+                                    (SQRT(1 + (8 * (total_points + $1::INTEGER)::NUMERIC / 100)) - 1) / 2) + 1,
                                 updated_at = CURRENT_TIMESTAMP
                             WHERE user_id = $2::UUID;
                         `,
                         [challenge.points_reward, userId]
                     );
+                    if (pointsUpdateResult.rowCount !== 1) {
+                        throw new Error(
+                            "Failed to update challenge reward points."
+                        );
+                    }
+                    pointsAwarded = challenge.points_reward;
                 }
             }
-
             results.push({
                 challengeId: challenge.challenge_id,
                 challengeName: challenge.name,
                 currentProgress: newProgress,
                 requirementValue: challenge.requirement_value,
                 status: isCompleted ? "completed" : "in_progress",
-                pointsAwarded: isCompleted
-                    ? challenge.points_reward
-                    : 0,
+                pointsAwarded,
             });
         }
-
         await client.query("COMMIT");
-
+        transactionStarted = false;
         return results;
     } catch (error) {
-        await client.query("ROLLBACK");
+        if (transactionStarted) {
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                error.rollbackError = rollbackError;
+            }
+        }
         throw error;
     } finally {
         client.release();
@@ -1243,18 +1134,15 @@ module.exports = {
     addPoints,
     calculateLevel,
     updateUserLevel,
-    updateUserStreak,
     findAllAchievementsByUserId,
     findUnlockedAchievementsByUserId,
-    unlockAchievement,
     findAllChallengesByUserId,
     findUserChallengeById,
     joinChallenge,
-    updateChallengeProgress,
     getTransactionStats,
     unlockAchievementAndAwardPoints,
-    findPendingGamificationEvents,
     claimPendingGamificationEvents,
+    renewGamificationEventLease,
     markGamificationEventProcessed,
     markGamificationEventFailed,
     recoverStaleGamificationEvents,

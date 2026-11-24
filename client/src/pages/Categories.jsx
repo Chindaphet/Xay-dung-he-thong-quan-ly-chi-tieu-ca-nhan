@@ -1,4 +1,12 @@
 
+import {
+    Plus,
+    Folder,
+    TrendingUp,
+    TrendingDown,
+    Search,
+    Pencil,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "../styles/categories.css";
 import Header from "../components/layout/Header";
@@ -9,12 +17,15 @@ import {
     createCategory,
     updateCategory,
     toggleCategory,
+    deleteCategory,
 } from "../services/api";
 
 function Categories({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t } = useLanguage();
     const CATEGORY_ICONS = [
@@ -56,6 +67,9 @@ const CATEGORY_ICON_GROUPS = [
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retryCount, setRetryCount] = useState(0);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("all");
     const categoryFormRef = useRef(null);
 
     const [showForm, setShowForm] = useState(false);
@@ -113,6 +127,26 @@ const handleCancelForm = () => {
     setEditingCategoryId(null);
     setShowForm(false);
     setError("");
+};
+const handleAddCategory = () => {
+    setEditingCategoryId(null);
+
+    setFormData({
+        name: "",
+        type: "expense",
+        color: "#8B5CF6",
+        icon: "",
+    });
+
+    setError("");
+    setShowForm(true);
+
+    setTimeout(() => {
+        categoryFormRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
+    }, 100);
 };
 const handleEditCategory = (category) => {
     setEditingCategoryId(category.category_id);
@@ -226,9 +260,47 @@ const handleToggleCategory = async (category) => {
         setError(err.message || t("categories.statusFailed"))
     }
 };
+// Delete category
+const handleDeleteCategory = async (category) => {
+    const confirmed = window.confirm(
+        t("categories.confirmDelete")
+    );
+
+    if (!confirmed) return;
+
+    setError("");
+
+    try {
+        await deleteCategory(category.category_id);
+        setShowForm(false);
+        setEditingCategoryId(null);
+        setRetryCount((prev) => prev + 1);
+    } catch (err) {
+        setError(
+            err.message || t("categories.deleteFailed")
+        );
+    }
+};
+    const filteredCategories = categories.filter((category) => {
+    const matchesSearch = category.name
+        .toLowerCase()
+        .includes(searchTerm.trim().toLowerCase());
+
+    const matchesType =
+        filterType === "all" || category.type === filterType;
+
+    const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && category.is_active) ||
+        (filterStatus === "inactive" && !category.is_active);
+
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
     const incomeCategories = categories.filter(
         (category) => category.type === "income"
     );
+
     const expenseCategories = categories.filter(
         (category) => category.type === "expense"
     );
@@ -241,10 +313,11 @@ const handleToggleCategory = async (category) => {
                     subtitle={t("categories.subtitle")}
                     user={user}
                     isSidebarOpen={isSidebarOpen}
-                    onToggleSidebar={onToggleSidebar} />
-
+                    onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
+                />
                 <section className="page-content categories-content">
-                    
                     <div className="page-header">
                         <div>
                             <h1>{t("categories.title")}</h1>
@@ -253,12 +326,67 @@ const handleToggleCategory = async (category) => {
                         <button
                             type="button"
                             className="category-add-button"
-                            onClick={() => setShowForm((previous) => !previous)}>
-                                <span>＋</span>
+                            onClick={handleAddCategory}>
+                                <Plus size={18} strokeWidth={2} />
                                 {t("categories.add")}
                         </button>
                     </div>
+                    <div className="category-summary">
+                        <div className="category-summary-card">
+                            <div className="category-summary-icon total"><Folder size={22} strokeWidth={2} /></div>
+                            <div className="category-summary-info">
+                                <span>{t("categories.totalCategories")}</span>
+                                <h2>{categories.length}</h2>
+                            </div>
+                        </div>
 
+                        <div className="category-summary-card">
+                            <div className="category-summary-icon income"><TrendingUp size={22} strokeWidth={2} /></div>
+                            <div className="category-summary-info">
+                                <span>{t("categories.income")}</span>
+                                <h2>{incomeCategories.length}</h2>
+                            </div>
+                        </div>
+
+                        <div className="category-summary-card">
+                            <div className="category-summary-icon expense"><TrendingDown size={22} strokeWidth={2} /></div>
+                            <div className="category-summary-info">
+                                <span>{t("categories.expense")}</span>
+                                <h2>{expenseCategories.length}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="category-toolbar">
+                        <div className="category-search">
+                            <Search size={18} strokeWidth={2} />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.target.value)}
+                                placeholder={t("categories.searchPlaceholder")}
+                            />
+                        </div>
+
+                        <div className="category-filters">
+                            <select
+                                value={filterType}
+                                onChange={(event) => setFilterType(event.target.value)}
+                            >
+                                <option value="all">{t("categories.allTypes")}</option>
+                                <option value="income">{t("categories.income")}</option>
+                                <option value="expense">{t("categories.expense")}</option>
+                            </select>
+
+                            <select
+                                value={filterStatus}
+                                onChange={(event) => setFilterStatus(event.target.value)}
+                            >
+                                <option value="all">{t("categories.allStatuses")}</option>
+                                <option value="active">{t("categories.active")}</option>
+                                <option value="inactive">{t("categories.inactive")}</option>
+                            </select>
+                        </div>
+                    </div>
                     {error && (
                         <div className="error-message">
                             <p>{error}</p>
@@ -282,11 +410,32 @@ const handleToggleCategory = async (category) => {
         }
 
     >
-        <h2>
-    {editingCategoryId
-        ? t("categories.editCategory")
-        : t("categories.addNewCategory")}
-</h2>
+        <div className="category-form-header">
+    <h2>
+        {editingCategoryId
+            ? t("categories.editCategory")
+            : t("categories.addNewCategory")}
+    </h2>
+
+    {editingCategoryId && (
+        <button
+            type="button"
+            className="category-delete-button"
+            onClick={() => {
+                const category = categories.find(
+                    (item) => item.category_id === editingCategoryId
+                );
+
+                if (category) {
+                    handleDeleteCategory(category);
+                }
+            }}
+            disabled={submitting}
+        >
+            {t("categories.delete")}
+        </button>
+    )}
+</div>
 
         <div className="form-group">
             <label htmlFor="category-name">
@@ -377,30 +526,30 @@ const handleToggleCategory = async (category) => {
 </p>
 
 </div>
+        <div className="category-form-actions">
+            <button
+                type="submit"
+                className="category-save-button"
+                disabled={submitting}
+            >
+                {submitting ? t("categories.saving")
+                    : editingCategoryId
+                    ? t("categories.updateCategory")
+                    : t("categories.saveCategory")}
+            </button>
 
-        <button
-            type="submit"
-            className="category-save-button"
-            disabled={submitting}
-        >
-            {submitting ? t("categories.saving")
-            : editingCategoryId
-            ? t("categories.updateCategory")
-            : t("categories.saveCategory")}
-        </button>
+            <button
+                type="button"
+                className="category-cancel-button"
+                onClick={handleCancelForm}
+                disabled={submitting}
+            >
+                {t("categories.cancel")}
+            </button>
+        </div>
 
-        <button
-            type="button"
-            className="category-cancel-button"
-            onClick={handleCancelForm}
-            disabled={submitting}
-        >
-            {t("categories.cancel")}
-        </button>
     </form>
 )}
-
-                    
 <div className="categories-list">
     {loading ? (
         <p>{t("categories.loading")}</p>
@@ -464,7 +613,7 @@ const handleToggleCategory = async (category) => {
                                             title={t("categories.edit")}
                                             aria-label={t("categories.edit")}
                                         >
-                                            ✏️
+                                            <Pencil size={16} strokeWidth={2} />
                                         </button>
 
                                         <button
@@ -540,7 +689,7 @@ const handleToggleCategory = async (category) => {
                                             title={t("categories.edit")}
                                             aria-label={t("categories.edit")}
                                         >
-                                            ✏️
+                                            <Pencil size={16} strokeWidth={2} />
                                         </button>
 
                                         <button

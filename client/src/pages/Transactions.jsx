@@ -1,10 +1,14 @@
 
+import {
+    Plus,
+    Pencil,
+    Trash2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "../styles/transactions.css";
 import Header from "../components/layout/Header";
 import SummaryCards from "../components/dashboard/SummaryCards";
 import useLanguage from "../hooks/useLanguage";
-
 import {
     getTransactions,
     getCategories,
@@ -18,6 +22,8 @@ function Transactions({
     user,
     isSidebarOpen,
     onToggleSidebar,
+    onNavigate,
+    onLogout,
 }) {
     const { t } = useLanguage();
     // State
@@ -99,7 +105,6 @@ function Transactions({
         };
 
         fetchData();
-
         return () => {
             cancelled = true;
         };
@@ -116,7 +121,6 @@ function Transactions({
     };
     const handleEditTransaction = (transaction) => {
     setEditingTransactionId(transaction.transactions_id);
-
     setFormData({
         type: transaction.type,
         categoryId: transaction.category_id,
@@ -169,11 +173,9 @@ const handleCancelDelete = () => {
     if (deleting) {
         return;
     }
-
     setShowDeleteModal(false);
     setDeletingTransaction(null);
 };
-
     // Close Add Transaction Form
     const handleCloseForm = () => {
         setShowForm(false);
@@ -282,7 +284,6 @@ const handleCancelDelete = () => {
             matchesEndDate
         );
     });
-
     return (
         <div className="dashboard-layout">
             <main className="dashboard-main">
@@ -292,6 +293,8 @@ const handleCancelDelete = () => {
                     user={user}
                     isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={onToggleSidebar}
+                    onNavigate={onNavigate}
+                    onLogout={onLogout}
                 />
 
                 <div className="dashboard-content">
@@ -335,7 +338,7 @@ const handleCancelDelete = () => {
                                         className="add-transaction-button"
                                         onClick={handleOpenForm}
                                     >
-                                        + {t("transactions.addTransaction")}
+                                        <Plus size={18} strokeWidth={2} />{t("transactions.addTransaction")}
                                     </button>
                                 </div>
 
@@ -663,7 +666,7 @@ const handleCancelDelete = () => {
                                                                             onClick={() => handleEditTransaction(transaction)}
                                                                             title={t("transactions.edit")}
                                                                             aria-label={t("transactions.edit")}>
-                                                                                ✎
+                                                                                <Pencil size={16} strokeWidth={2} />
                                                                         </button>
                                                                         <button
                                                                             type="button"
@@ -671,7 +674,7 @@ const handleCancelDelete = () => {
                                                                             onClick={() => handleDeleteTransaction(transaction)}
                                                                             title={t("transactions.delete")}
                                                                             aria-label={t("transactions.delete")}>
-                                                                                🗑
+                                                                                <Trash2 size={16} strokeWidth={2} />
                                                                         </button>
                                                                     </>
                                                                 )}
@@ -698,7 +701,7 @@ const handleCancelDelete = () => {
             aria-labelledby="delete-modal-title"
         >
             <div className="delete-modal-icon">
-                🗑
+                <Trash2 size={24} strokeWidth={2} />
             </div>
 
             <h3 id="delete-modal-title">

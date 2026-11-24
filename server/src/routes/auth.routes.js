@@ -23,8 +23,10 @@ router.post("/reset-password", authController.resetPassword);
 
 // GET /api/auth/me (Protected Route)
 router.get("/me", authMiddleware, authController.getMe);
+// Update current user profile
 router.put("/me", authMiddleware, authController.updateMe);
-
+// PUT /api/auth/change-password (Protected Route)
+router.put("/change-password",authMiddleware,authController.changePassword);
 // POST /api/auth/logout
 router.post("/logout", authController.logout);
 

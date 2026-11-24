@@ -19,7 +19,6 @@ const findByEmail = async (email) => {
     `;
 
     const { rows } = await pool.query(query, [email]);
-
     return rows[0] || null;
 };
 
@@ -41,7 +40,6 @@ const findByUsername = async (username) => {
     `;
 
     const { rows } = await pool.query(query, [username]);
-
     return rows[0] || null;
 };
 // Find a user by ID
@@ -61,6 +59,32 @@ const findById = async (userId) => {
     `;
 
     const { rows } = await pool.query(query, [userId]);
+    return rows[0] || null;
+};
+
+// Update preferred language
+const updatePreferredLanguageByUserId = async (
+    userId,
+    preferredLanguage
+) => {
+    const query = `
+        UPDATE users
+        SET
+            preferred_language = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $2
+        RETURNING
+            user_id,
+            preferred_language,
+            updated_at;
+    `;
+
+    const values = [
+        preferredLanguage,
+        userId,
+    ];
+
+    const { rows } = await pool.query(query, values);
 
     return rows[0] || null;
 };
@@ -136,16 +160,18 @@ const updatePasswordByUserId = async (
 // Update user profile
 const updateProfileByUserId = async (
     userId,
+    username,
     fullName,
     email
 ) => {
     const query = `
         UPDATE users
         SET
-            full_name = $1,
-            email = $2,
+            username = $1,
+            full_name = $2,
+            email = $3,
             updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = $3
+        WHERE user_id = $4
         RETURNING
             user_id,
             username,
@@ -157,6 +183,7 @@ const updateProfileByUserId = async (
     `;
 
     const values = [
+        username,
         fullName,
         email,
         userId,
@@ -173,4 +200,5 @@ module.exports = {
     createUser,
     updatePasswordByUserId,
     updateProfileByUserId,
+    updatePreferredLanguageByUserId,
 };

@@ -48,7 +48,80 @@
     background: var(--primary-dark, #4f46e5);
     transform: translateY(-1px);
 }
+/* ========================================
+   RECURRING SUMMARY
+======================================== */
 
+.recurring-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.recurring-summary-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recurring-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.recurring-summary-info {
+    min-width: 0;
+}
+
+.recurring-summary-info span {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary, #6b7280);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.recurring-summary-info h3 {
+    margin: 0;
+    color: var(--text-primary, #1f2937);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.recurring-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.recurring-summary-icon.total {
+    background: #ede9fe;
+    color: #7652d5;
+}
+
+.recurring-summary-icon.active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.recurring-summary-icon.inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
 /* ========================================
    RECURRING FORM
 ======================================== */
@@ -179,16 +252,82 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+/* ========================================
+   RECURRING TOOLBAR
+======================================== */
 
+.recurring-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.recurring-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+.recurring-search > i {
+    position: absolute;
+    left: 13px;
+    color: var(--text-secondary, #9ca3af);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.recurring-search input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 11px 38px 11px 38px;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 8px;
+    background: var(--surface, #ffffff);
+    color: var(--text-primary, #374151);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recurring-search input:focus {
+    border-color: var(--primary, #7652d5);
+    box-shadow: 0 0 0 3px rgba(118, 82, 213, 0.12);
+}
+
+.recurring-search-clear {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary, #9ca3af);
+    cursor: pointer;
+}
+
+.recurring-search-clear:hover {
+    background: var(--background, #f3f4f6);
+    color: var(--text-primary, #374151);
+}
 /* ========================================
    RECURRING FILTERS
 ======================================== */
 
 .recurring-filters {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    gap: 10px;
+    flex: 1.5;
+    min-width: 0;
 }
 
 .recurring-filters select {
@@ -205,7 +344,8 @@
 }
 
 .recurring-filters select:focus {
-    border-color: var(--primary, #6366f1);
+    border-color: var(--primary, #7652d5);
+    box-shadow: 0 0 0 3px rgba(118, 82, 213, 0.12);
 }
 
 /* ========================================
@@ -389,6 +529,27 @@
     .recurring-filters {
         grid-template-columns: 1fr;
     }
+    .recurring-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    }
+
+    .recurring-summary-card {
+        padding: 16px;
+    }
+    .recurring-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.recurring-search {
+    width: 100%;
+}
+
+.recurring-filters {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 }
 
 @media (max-width: 480px) {
@@ -417,4 +578,14 @@
     .recurring-table {
         min-width: 850px;
     }
+    .recurring-summary {
+    grid-template-columns: 1fr;
+    }
+
+    .recurring-summary-info h3 {
+        font-size: 23px;
+    }
+    .recurring-filters {
+    grid-template-columns: 1fr;
+}
 }
